@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- HCar에 알파엔진 -->
+	<!-- 
+	<bean id="car" class="ex.HCar">
+		<property name="engine" ref="alpha"></property>
+		<property name="name" value="그랜저"></property>
+	</bean>
+	 -->
+	<!-- KCar에 베타엔진 -->
+	<bean id="car" class="ex.KCar">
+		<constructor-arg index="0" ref="beta"></constructor-arg>
+		<constructor-arg index="1" value="K8"></constructor-arg>
+	</bean>
+	
+	<bean id="alpha" class="ex.AlphaEngine"></bean>
+	<bean id="beta" class="ex.BetaEngine"></bean>
+</beans>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+        <user level="1">
+            <id>001</id>
+            <name>홍길동</name>
+        </user>
+        <user level="3">
+            <id>002</id>
+            <name>김유신</name>
+        </user>
+    </users>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	
+	<!-- 
+	<bean id="tv" class="Injection.LGTV">
+		<constructor-arg ref="sony"></constructor-arg>
+	</bean> 
+	-->
+	<!-- 
+	<bean id="tv" class="Injection.SamsungTV">
+		<constructor-arg index="0" ref="apple"></constructor-arg>
+		<constructor-arg index="1" value="100"></constructor-arg>
+		<constructor-arg index="2" value="80인치"></constructor-arg>
+	</bean>
+	-->
+	 
+	<!-- 
+	<bean id="tv" class="Injection.SamsungTV">
+		<constructor-arg>
+	 		<list>
+	 			<value>홍길동</value>
+	 			<value>이순신</value>
+	 			<value>강감찬</value>
+	 		</list>
+	 	</constructor-arg>
+	 	<constructor-arg>
+	 		<array>
+	 			<value>서울시 강서구</value>
+	 			<value>서울시 영등포구</value>
+	 			<value>서울시 강동구</value>
+	 			<value>서울시 은평구</value>
+	 		</array>
+	 	</constructor-arg>
+	 	<property name="speaker" ref="sony"></property>
+	 	<property name="price" value="100"></property>
+		<property name="spec" value="80인치"></property>
+	</bean>
+	-->
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:address.properties"></property>
+	</bean>
+	
+	<bean id="tv" class="Injection.LGTV">
+		<constructor-arg ref="sony" />
+		<property name="addressMap">
+			<map>
+				<entry>
+					<key><value>홍길동</value></key>
+					<value>서울시 강남구 삼성동</value>
+				</entry>
+				<entry>
+					<key><value>강감찬</value></key>
+					<value>서울시 영등포구 여의도동</value>
+				</entry>
+			</map>
+		</property>
+		<property name="address">
+			<props>
+				<prop key="홍길동">${홍길동}</prop>
+				<prop key="이순신">${이순신}</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="sony" class="Injection.SonySpeaker"></bean>
+	<bean id="apple" class="Injection.AppleSpeaker"></bean>
+</beans>

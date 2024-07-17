@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+<!-- 
+	context:component-scan 으로 빈을 불러올 경우 set메서드 사용!
+	bean id= 방식으로 불러올 경우 생성자 필요
+	DAO
+ -->
+
+	
+	
+	<!-- BoardServiceImpl
+
+	<bean id="boardService" class="com.spring.biz.board.impl.BoardServiceImpl">
+		<constructor-arg ref="boardDAO"/>
+	</bean>
+
+    UserServiceImpl
+    <bean id="userService" class="com.spring.biz.user.impl.UserServiceImpl">
+        <property name="userDAO" ref="userDAO"/>
+    </bean>
+
+    DAO Beans
+	<bean id="boardDAO" class="com.spring.biz.board.impl.BoardDAO"/>
+	<bean id="userDAO" class="com.spring.biz.user.impl.UserDAO"/>
+
+    VO Beans
+    <bean id="boardVO" class="com.spring.biz.board.BoardVO"/>
+    <bean id="userVO" class="com.spring.biz.user.UserVO"/> -->
+    
+    
+    
+<!--
+    <bean id="before" class="com.spring.biz.common.BeforeAdvice" />
+    <bean id="afterReturn" class="com.spring.biz.common.AfterReturnAdvice" />
+    <bean id="afterThrowing" class="com.spring.biz.common.AfterThrowingAdvice" />
+    <bean id="around" class="com.spring.biz.common.AroundAdvice" />
+    
+	<aop:config>
+    	<aop:pointcut expression="execution(* com.spring.biz..*Impl.*(..))" id="allPointCut"/>
+    	<aop:pointcut expression="execution(* com.spring.biz..*Impl.get*(..))" id="getPointCut"/>
+    	
+      	<aop:aspect ref="before">
+    		<aop:before method="beforeLog" pointcut-ref="allPointCut"/>
+    	</aop:aspect>
+    	
+    	<aop:aspect ref="afterReturn">
+    		<aop:after-returning method="afterLog" pointcut-ref="getPointCut"
+    			returning="returnObj"/>
+    	</aop:aspect>
+    	
+    	<aop:aspect ref="afterThrowing">
+    		<aop:after-throwing method="exceptionLog" pointcut-ref="allPointCut"
+    			throwing="exception"/>
+    	</aop:aspect>
+    	
+    	<aop:aspect ref="around">
+    		<aop:around method="aroundLog" pointcut-ref="allPointCut" />
+    	</aop:aspect>
+    </aop:config> -->
+    
+    <!-- <aop:aspectj-autoproxy></aop:aspectj-autoproxy> -->
+    
+    <context:component-scan base-package="com.spring.biz" />
+
+
+
+	<!-- Transaction -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="*"/>
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut expression="execution(* com.spring.biz..*.*(..))" id="txPointCut"/>
+		<aop:advisor pointcut-ref="txPointCut" advice-ref="txAdvice"/>
+	</aop:config>
+	
+</beans>

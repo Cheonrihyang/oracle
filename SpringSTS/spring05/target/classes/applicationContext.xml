@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+
+	<context:component-scan base-package="com.spring.biz" />
+	
+
+	<!-- BoardServiceImpl -->
+
+	<bean id="boardService" class="com.spring.biz.board.impl.BoardServiceImpl">
+		<constructor-arg ref="boardDAO"/>
+	</bean>
+
+    <!-- UserServiceImpl -->
+    <bean id="userService" class="com.spring.biz.user.impl.UserServiceImpl">
+        <property name="userDAO" ref="userDAO"/>
+    </bean>
+
+    <!-- BoardDAO -->
+    <bean id="boardDAO" class="com.spring.biz.board.impl.BoardDAO"/>
+    
+    <!-- UserDAO -->
+    <bean id="userDAO" class="com.spring.biz.user.impl.UserDAO"/>
+
+    <!-- VO Beans -->
+    <bean id="boardVO" class="com.spring.biz.board.BoardVO"/>
+    <bean id="userVO" class="com.spring.biz.user.UserVO"/>
+</beans>

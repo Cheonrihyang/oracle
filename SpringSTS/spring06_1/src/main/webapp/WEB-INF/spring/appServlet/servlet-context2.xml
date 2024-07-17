@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+
+	<context:component-scan base-package="com.spiring.biz"></context:component-scan>
+	<!-- HandlerMapping -->
+	<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="mappings">
+			<props>
+				<prop key="/userCheck.to">login</prop>
+				<prop key="/getBoardList.to">getBoardList</prop>
+				<prop key="/getBoard.to">getBoard</prop>
+				<prop key="/insertBoard.to">insertBoard</prop>
+				<prop key="/updateBoard.to">updateBoard</prop>
+				<prop key="/deleteBoard.to">deleteBoard</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<!-- Controller -->
+	<bean id="login" 			class="com.spring.view2.user.LoginController" >
+		<property name="userService" ref="userService" />
+	</bean>
+	<bean id="getBoardList" 	class="com.spring.view2.board.GetBoardListController" >
+		<property name="boardService" ref="boardService" />
+	</bean>
+	<bean id="getBoard"			class="com.spring.view2.board.GetBoardController" >
+		<property name="boardService" ref="boardService" />
+	</bean>
+	<bean id="insertBoard"		class="com.spring.view2.board.InsertBoardController" >
+		<property name="boardService" ref="boardService" />
+	</bean>
+	<bean id="updateBoard"		class="com.spring.view2.board.UpdateBoardController" >
+		<property name="boardService" ref="boardService" />
+	</bean>
+	<bean id="deleteBoard"		class="com.spring.view2.board.DeleteBoardController" >
+		<property name="boardService" ref="boardService" />
+	</bean>
+	
+	<!-- viewResolver -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+</beans>
