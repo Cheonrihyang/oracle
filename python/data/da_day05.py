@@ -516,10 +516,9 @@ df.set_index('이름',inplace=True)
 
 print(round(df.sort_values(['평균','이름'],ascending=[False,True])['평균'],2))
 
-#%%
+#%% 표본 추출
 
 import pandas as pd
-import numpy as np
 
 data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
 "year": [2014, 2015, 2016, 2015, 2016],
@@ -533,3 +532,37 @@ df.tail(2)
 df.sample(2)
 df.sample(2,replace=True) #중복허용
 
+#%% 날짜
+
+import pandas as pd
+
+#2022-12-01 ~ 2022-12-31 객체생성
+#시작일,일수
+pd.date_range('2022-12-01',periods=31)
+pd.date_range('20221201',periods=31)
+
+#시작일,마지막일
+d=pd.date_range('2022-12-01',end='2022-12-31')
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"date": ['20140101','20150212','20161027','20151111','20161212'],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+#형식화된 날자 시리즈
+d = pd.to_datetime(df['date'],format='%Y-%m-%d')
+df['date2']=d
+d = pd.to_datetime(df['date']) #디폴트로 위와 동일한 포멧 적용
+df['date3']=d
+
+#dt=datetime접근자
+#년도만 추출
+df['date2'].dt.year
+#월만 추출
+df['date2'].dt.month
+#일만 추출
+df['date2'].dt.day
+
+from datetime import datetime
+datetime.strptime('2024-07-18 18:13:00', '%Y-%m-%d %H:%M:%S')
+d = pd.to_datetime('2024-07-18 18:13:00')
