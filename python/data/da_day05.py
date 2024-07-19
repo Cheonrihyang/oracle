@@ -616,9 +616,11 @@ print(titanic['Fare'].mean(axis=0))
 
 #성별 생존자와 사망자수를 출력한다
 print(titanic.groupby(['Sex','Survived'])['Survived'].count())
+titanic[['Sex','Survived']].value_counts(normalize=True)
 
 #객실등급별 생존자와 사망자수를 출력한다
-print(titanic.groupby(['Cabin','Survived'])['Survived'].count())
+print(titanic.groupby(['Pclass','Survived'])['Survived'].count())
+titanic[['Pclass','Survived']].value_counts(normalize=True)
 
 #'Fare_Range' 열을 추가후 Fare_Range 열을 다음조건으로 값을 수정한다 
 #-조건
@@ -627,12 +629,18 @@ print(titanic.groupby(['Cabin','Survived'])['Survived'].count())
 #Fare>14.454이고Fare<=31 이면 3
 #Fare>31이고 Fare<=513 이면 4
 
-titanic['Fare_Range']=0
-titanic['Fare_Range'] = titanic['Fare_Range'].where(titanic['Fare']>7.91,1)
-titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare']<=7.91) | (titanic['Fare']>14.454),2)
-titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 14.454) | (titanic['Fare']>31),3)
-titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 31) | (titanic['Fare']>513),4)
+#titanic['Fare_Range']=0
+#titanic['Fare_Range'] = titanic['Fare_Range'].where(titanic['Fare']>7.91,1)
+#titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare']<=7.91) |
+#                                                    (titanic['Fare']>14.454),2)
+#titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 14.454) |
+#                                                    (titanic['Fare']>31),3)
+#titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 31) |
+#                                                    (titanic['Fare']>513),4)
 
+titanic['Fare_Range'] = pd.cut(titanic['Fare'], 
+                        bins=[0,7.91,14.454,31,513], 
+                        labels=[1,2,3,4],include_lowest=True)
 
 #Fare_Range별로 평균 생존율를 출력한다.
 print(titanic.groupby('Fare_Range')['Survived'].mean())
@@ -642,3 +650,157 @@ titanic.groupby(titanic['Fare_Range'])['Survived'].mean()
 titanic['Sex'] = titanic['Sex'].astype('category')
 titanic['Sex'].cat.categories
 
+#%% 포함여부확인
+
+import pandas as pd
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"year": [2014, 2015, 2016, 2015, 2016],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+df.query('points==[2.4,2.9]')
+
+#isin이 포함된 행을 boolean배열로 반환
+df[df['points'].isin([2.4,2.9])]
+
+#%% 사용자 정의함수
+
+df = pd.DataFrame([[1,2,3],[4,5,6]],
+                  columns=['A','B','C'])
+
+def two_times(x):
+    return x*2
+
+#사용자 정의함수 사용
+df['A'].apply(two_times)
+df['A'].map(two_times)
+
+#시리즈일 경우 map 사용이 가능하지만 다중열일경우 불가능
+df.apply(two_times)
+df.map(two_times)
+
+df.apply(two_times,axis=1)
+
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"year": [2014, 2015, 2016, 2015, 2016],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+def max_minus_min(x):
+    return x.max() - x.min()
+func = lambda x: x.max() - x.min()
+
+df[['year','points']].apply(max_minus_min, axis=0)
+df[['year','points']].apply(func, axis=0)
+
+df[['year','points']].groupby('year').apply(max_minus_min)
+
+#%% 조인
+
+import pandas as pd
+
+#고객 테이블(사전{컬럼:[]})
+df_left = pd.DataFrame({
+    '고객번호': [1001, 1002, 1003, 1004, 1005, 1006, 1007],
+    '이름': ['둘리', '도우너', '또치', '길동', '희동', '마이콜', '영희']
+})
+#주문테이블(사전{컬럼:[]})
+df_right = pd.DataFrame({
+    '고객번호': [1001, 1001, 1005, 1006, 1008, 1001],
+    '금액': [10000, 20000, 15000, 5000, 100000, 30000]
+})
+
+#이너조인
+pd.merge(df_left,df_right,how='inner',on='고객번호')
+pd.merge(df_left,df_right)
+
+#아우터조인
+pd.merge(df_left,df_right,how='left',on='고객번호') #left조인
+pd.merge(df_left,df_right,how='right',on='고객번호') #right조인
+pd.merge(df_left,df_right,how='outer',on='고객번호') #양쪽조인
+
+
+
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"year": [2014, 2015, 2016, 2015, 2016],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+#위아래로 붙이기
+df.append(df,ignore_index=True)
+
+df1 = pd.DataFrame([{'name':'John','job':'teacher'}
+                    ,{'name':'Candy','job':'student'}
+                    ,{'name':'Fred','job':'developer'}])
+
+df2 = pd.DataFrame([{'name':'Ed','job':'engineer'}
+                    ,{'name':'Jack','job':'farmer'}
+                    ,{'name':'James','job':'student'}
+                    ,{'name':'James','job':'student'}])
+
+pd.concat([df1,df2],axis=0,ignore_index=True)
+pd.concat([df1,df2],axis=1,ignore_index=True)
+
+
+#%% 퀴즈
+
+import pandas as pd
+
+#1. df과df2를 상하로 합쳐본다 
+
+df = pd.DataFrame({
+    '국어': [1, 2, 3],
+    '영어': [4, 5, 6]
+})
+
+df2=pd.DataFrame(
+    {'국어':[1,2,3]
+    ,'영어':[4,5,6]    
+    })
+df=df.append(df2,ignore_index=True)
+
+#2. 학생별 두 과목 두 과목점수 평균 출력한다.(apply 사용)
+fun = lambda x : x.mean()
+
+# 각 행에 대해 함수 적용
+df[['국어','영어']].apply(fun,axis=1)
+
+#%% csv 쓰기
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"year": [2014, 2015, 2016, 2015, 2016],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+df.to_csv('frame.csv',mode='w',index=True,encoding='utf-8',header=True)
+df.to_csv('frame.csv',encoding='utf-8',index=False,header=True)
+
+#%% csv 읽기
+
+df = pd.read_csv('frame.csv',encoding='utf-8')
+df = pd.read_csv('frame.csv',encoding='utf-8',header=None) #헤더가 없으면 자동정수설정
+df.columns=['names','year','points']
+
+
+#정규표현식 사용해서 데이터 정리
+#/s+ 길이가 정해지지 않는 공백 
+pd.read_csv('fname2.csv',sep='\s+',na_values=['$','?'])
+
+#%% 퀴즈
+
+import pandas as pd
+
+#총인구수, 세대수,남자_인구수,여자_인구수 4개열의(열별) 합계를 출력
+#단 특정 열의 ','와 공백문자를 제거
+
+df = pd.read_csv('population_2020.csv',encoding='utf-8')
+
+def func(col):
+    return df[col].str.replace(',','').str.replace(' ','').astype(np.int32).sum()
+
+list = ['2020년02월_총인구수','2020년02월_세대수','2020년02월_남자 인구수','2020년02월_여자 인구수']
+for x in list:
+    print(f'{x}는 {format(func(x),",")} 입니다.')
