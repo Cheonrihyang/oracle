@@ -566,3 +566,79 @@ df['date2'].dt.day
 from datetime import datetime
 datetime.strptime('2024-07-18 18:13:00', '%Y-%m-%d %H:%M:%S')
 d = pd.to_datetime('2024-07-18 18:13:00')
+
+from datetime import timedelta
+d-timedelta(days=3)
+
+#%% 카테고리
+
+import pandas as pd
+
+data = {"names": ["Kilho", "Kilho", "Kilho", "Charles", "Charles"],
+"year": [2014, 2015, 2016, 2015, 2016],
+"points": [1.5, 1.7, 3.6, 2.4, 2.9]}
+df = pd.DataFrame(data)
+
+df.sort_values('year')
+df.info()
+
+#문자열을 카테고리로 반환(메모리절약,데이터 분석에 유리)
+df['names'] = df['names'].astype('category')
+
+#카테고리 리스트출력
+df['names'].cat.categories
+
+#카테고리 우선순위 설정
+df['names'].cat.reorder_categories(['Kilho','Charles'],inplace=True)
+df['names'].cat.as_ordered()
+#카테고리 우선순위대로 정렬
+df.sort_values('names')
+
+#카테고리 우선순위대로 값대입
+df['names'].cat.categories=[0,1]
+df['names'].cat.categories=[]
+
+#year에 20 지우기
+df['year']=df['year'].astype("category")
+df['year'].cat.categories=[14,15,16]
+
+#카테고리 타입이라 합연산이 불가능
+df['year'].sum()
+
+#%% 퀴즈
+
+titanic = pd.read_csv('titanic.csv')
+
+#Pclass 객실등급 Fare :탑승료(운임) Sex 성별 male, female Survived 생존여부 0,1
+
+#평균 탑승료을 출력한다
+print(titanic['Fare'].mean(axis=0))
+
+#성별 생존자와 사망자수를 출력한다
+print(titanic.groupby(['Sex','Survived'])['Survived'].count())
+
+#객실등급별 생존자와 사망자수를 출력한다
+print(titanic.groupby(['Cabin','Survived'])['Survived'].count())
+
+#'Fare_Range' 열을 추가후 Fare_Range 열을 다음조건으로 값을 수정한다 
+#-조건
+#Fare<=7.91 이면 1
+#Fare>7.91 이고 Fare<=14.454 이면 2
+#Fare>14.454이고Fare<=31 이면 3
+#Fare>31이고 Fare<=513 이면 4
+
+titanic['Fare_Range']=0
+titanic['Fare_Range'] = titanic['Fare_Range'].where(titanic['Fare']>7.91,1)
+titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare']<=7.91) | (titanic['Fare']>14.454),2)
+titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 14.454) | (titanic['Fare']>31),3)
+titanic['Fare_Range'] = titanic['Fare_Range'].where((titanic['Fare'] <= 31) | (titanic['Fare']>513),4)
+
+
+#Fare_Range별로 평균 생존율를 출력한다.
+print(titanic.groupby('Fare_Range')['Survived'].mean())
+
+#Sex 성별 male, female을  category(범주형)으로 변환하여 코드화한다.
+titanic.groupby(titanic['Fare_Range'])['Survived'].mean()
+titanic['Sex'] = titanic['Sex'].astype('category')
+titanic['Sex'].cat.categories
+
