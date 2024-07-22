@@ -792,6 +792,7 @@ pd.read_csv('fname2.csv',sep='\s+',na_values=['$','?'])
 #%% 퀴즈
 
 import pandas as pd
+import numpy as np
 
 #총인구수, 세대수,남자_인구수,여자_인구수 4개열의(열별) 합계를 출력
 #단 특정 열의 ','와 공백문자를 제거
@@ -800,7 +801,29 @@ df = pd.read_csv('population_2020.csv',encoding='utf-8')
 
 def func(col):
     return df[col].str.replace(',','').str.replace(' ','').astype(np.int32).sum()
+def func2(col):
+    return int(col.replace(',','').replace(' ',''))
+def func3(col):
+    return format(col,',')
 
-list = ['2020년02월_총인구수','2020년02월_세대수','2020년02월_남자 인구수','2020년02월_여자 인구수']
-for x in list:
+for x in ['2020년02월_총인구수','2020년02월_세대수','2020년02월_남자 인구수','2020년02월_여자 인구수']:
     print(f'{x}는 {format(func(x),",")} 입니다.')
+
+#1. 한글컬럼이름이 조금 복잡해서 컬럼이름을 수정 간소화하고 loc[] 방식을 사용한다.
+#- 새컬럼이름
+#['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+df.columns=['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+
+#2. 총인구수, 세대수,남자_인구수,여자_인구수의 합계를 출력하고
+#총인구수 순으로 행들을 내림정렬한다.
+
+func('총인구수')
+for x in ['총인구수','세대수','남자_인구수','여자_인구수']:
+    print(f'{x}는 {format(func(x),",")} 입니다.')
+    df[x]=df[x].apply(func2)
+    
+df.sort_values(by='총인구수',ascending=False,inplace=True)
+print(df)
+
+for x in ['총인구수','세대수','남자_인구수','여자_인구수']:
+    df[x]=df[x].apply(func3)
