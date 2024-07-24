@@ -316,6 +316,7 @@ df.plot(kind='area')
 
 #%% 퀴즈
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 df = pd.read_csv('population_2020.csv',encoding='utf-8')
@@ -329,6 +330,6 @@ pt=df[cols].sum()
 #1. 전체 총인구수,총세대수,남자총인구수,여자총인구수 출력한다. 
 print(pt)
 #2. 서울,부산, 대구, 인천, 광주, 대전지역의 총인구수와 세대수를 막대플롯한다. 
-pt=df.loc[:5,['2020년02월_총인구수','2020년02월_세대수']]
+pt=df.loc[:5,cols[:2]]
+plt.figure(figsize=(10,10))
 pt.plot.bar()
-df[]
