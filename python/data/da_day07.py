@@ -66,6 +66,7 @@ plt.title("요일별 성별 전체 식사대금")
 
 plt.figure(figsize=(9,7))
 sns.boxplot(x="day", y="total_bill",hue='smoker', data=tips)
+
 plt.title("요일별 흡연여부별 전체 식사대금")
 
 #인원수 3 경우 : 팁금액이 매우 큰 금액(10)이 보이고
