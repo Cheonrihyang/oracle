@@ -434,7 +434,7 @@ y_data = dataset.target
 #train과 test 데이터 서브셋으로 분할
 #test_size=테스트 데이터셋의 비율
 x_train, x_test, y_train, y_test = model_selection.train_test_split(x_data, y_data,
-                                                                    test_size=0.3,
+                                                                    test_size=0.25,
                                                                     random_state=1)
 
 #%%
@@ -456,7 +456,7 @@ print(score) #0.78
 # boston 데이타셋 로드
 boston = datasets.load_boston()
 boston.keys()
-boston.data
+test=boston.data
 boston.feature_names
 boston.target
 bostonDF = pd.DataFrame(boston.data , columns = boston.feature_names)
@@ -489,3 +489,214 @@ r2_score(bostonDF['PRICE'], y_preds)
 lr.score(pd.DataFrame(bostonDF["RM"]) ,bostonDF['PRICE']  )
 #y^(예측값)인경우(선형회귀) R2는 1
 lr.score(pd.DataFrame(bostonDF["RM"]) ,y_preds  ) #1.0
+
+
+#%%
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+grd=['A','C','B','B','A']
+
+le = LabelEncoder()
+le.fit(grd)
+y_data=le.transform(grd)
+le.classes
+
+#역변환
+le.inverse_transform(y_data)
+
+
+#%% 다중컬럼 인코딩 
+
+items=['TV','냉장고','전자렌지','컴퓨터','선풍기']#제품명
+grd=['A','C','B','B','A']#제품등급
+
+import pandas as pd
+df = pd.DataFrame({'grd':grd,'items':items})
+# le.fit(다중컬럼들) 오류
+# label column 별로 Label Encoder object 생성
+label_column = ['grd','items'] 
+label_encode_list = []
+label_encoder_list = []
+for column_index in label_column:
+    le = LabelEncoder()
+    le.fit(df[column_index])
+    le.transform(df[column_index])
+    label_encoder_list.append(le)
+    label_encode_list.append(le.transform(df[column_index])) #각 컬럼 별로 label encode 배열 저장
+
+#label_encode_list = [array([0, 2, 1, 1, 0]), array([0, 1, 3, 4, 2])]    
+y0=label_encode_list[0]
+label_encoder_list[0].inverse_transform(y0)
+
+#%% 원핫인코딩
+
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
+
+grd=['A','C','B','B','A']
+df=pd.DataFrame(grd)
+pd.get_dummies(df)
+
+
+le = LabelEncoder()
+le.fit(grd)
+y_data=le.transform(grd)
+
+oh=OneHotEncoder()
+y_data = y_data.reshape(-1,1)
+oh.fit(df)
+y_data=oh.transform(df)
+y_data.toarray()
+
+#%% get_dummies를 이용한 원핫인코딩
+
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.linear_model import LinearRegression
+
+##########데이터 로드
+
+train_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='train')
+test_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='test')
+
+test_df.info()
+
+
+y_train_df = train_df['가격']
+y_test_df = test_df['가격']
+x_train_df = train_df.drop(['가격'], axis=1)
+x_test_df = test_df.drop(['가격'], axis=1)
+
+x_train = pd.get_dummies(x_train_df,columns=['종류','연료','변속기'])
+x_test = pd.get_dummies(x_test_df,columns=['종류','연료','변속기'])
+
+
+
+y_train = y_train_df.to_numpy()
+y_test = y_test_df.to_numpy()
+
+model = LinearRegression()
+
+model.fit(x_train,y_train_df)
+
+print(model.score(x_train,y_train))
+print(model.score(x_test,y_test))
+
+
+
+
+#%% tranformer을 이용한 원핫인코딩
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+items=['TV','냉장고','전자렌지','냉장고','전자렌지']#제품명
+grd=['A','C','B','B','A']#제품등급
+price=[10,20,20,20,10]
+
+df = pd.DataFrame({'grd':grd,'items':items,'price':price})
+df.info()
+from sklearn.compose import make_column_transformer
+
+transformer = make_column_transformer( 
+    (OneHotEncoder(), ['grd','items']),
+    remainder='passthrough')
+
+#그냥 배열임
+transformer.fit_transform(df)
+#인코딩된 컬럼명 확인
+transformer.get_feature_names()
+
+#DataFrame으로 구성
+#3개의 컬럼을 가지는 df가
+#7개 컬럼을 가지는 enc_df 변환
+df=pd.DataFrame(transformer.fit_transform(df),
+             columns=transformer.get_feature_names())
+
+
+#%% get_dummies를 이용한 원핫인코딩
+
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.linear_model import LinearRegression
+
+##########데이터 로드
+
+train_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='train')
+test_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='test')
+
+test_df.info()
+
+
+y_train_df = train_df['가격']
+y_test_df = test_df['가격']
+x_train_df = train_df.drop(['가격'], axis=1)
+x_test_df = test_df.drop(['가격'], axis=1)
+
+
+transformer = make_column_transformer( 
+    (OneHotEncoder(), ['종류','연료','변속기']),
+    remainder='passthrough')
+transformer.fit(x_train_df)
+x_train = transformer.transform(x_train_df)
+x_test = transformer.transform(x_test_df)
+
+
+y_train = y_train_df.to_numpy()
+y_test = y_test_df.to_numpy()
+
+
+model = LinearRegression()
+model.fit(x_train,y_train)
+
+print(model.score(x_test, y_test))
+
+
+#예측
+
+x_test = [
+    [2016, '대형', 6.8, 159, 25, 'LPG', 0, 2359, 1935, '수동']
+]
+
+x_test = transformer.transform(pd.DataFrame(x_test, columns=['년식', '종류', '연비', '마력', '토크', '연료', '하이브리드', '배기량', '중량', '변속기']))
+
+y_predict = model.predict(x_test)
+print(y_predict[0]) #1802.160302088625
+
+#%% 퀴즈
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+#맨하탄의 주택정보를 이용한 임대료 예측 선형회귀모델을 구현 및 평가한다.
+#rent 정보가 임대료이고 target이다.
+
+#* 고려사항
+#- id같은 식별자와 object 같은 비숫자열인 특성은 학습에서 제외한다.
+#- train_test_split()을 적용한다.
+#- 회귀계수를 큰 값 순으로 정렬하여 출력한다.
+
+df = pd.read_csv('data/manhattan.csv',encoding='utf-8')
+y_target = df['rent']
+x_data = df.drop(['rent','rental_id','neighborhood','borough'],axis=1,inplace=False)
+
+x , x_test , y , y_test = train_test_split(x_data , y_target 
+,test_size=0.3, random_state=1)
+
+y = y.to_numpy()
+y_test = y_test.to_numpy()
+
+model = LinearRegression()
+model.fit(x,y)
+
+print(model.score(x,y))
+print(model.score(x_test,y_test))
+print(np.sort(model.coef_,axis=0)[::-1])
+
