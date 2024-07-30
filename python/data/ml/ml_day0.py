@@ -6,6 +6,20 @@ Created on Wed Jul 24 12:17:57 2024
 """
 #%%
 
+#데이터 수집,평기
+#x,y 데이터분할
+#이상치 결측치 처리
+#x 표준 혹은 인덱스 크기 정규화 스케일링
+#피처간 시각적 상관 분석으로 다중공산성 대략적인 파악 과적합 처리
+#타겟의 분포가 치우쳤을시 표준or로그 정규화
+#데이터분할(k-분할 교차검증)
+#회귀 정규화 과적합문제 해소
+#회귀학습(파라미터 그리드서치 k-분할 교차검증)
+#성능향상이 없으면(선형관계로 설명이 어려울경우) 피처정규화 데이터에 다항다차 특성 적용
+#예측 평가할 새 데이터 피처 정규화
+#예측 모델 평가
+
+#%%
 
 import pandas as pd
 import numpy as np
@@ -671,6 +685,7 @@ print(y_predict[0]) #1802.160302088625
 
 #%% 퀴즈
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -700,3 +715,646 @@ print(model.score(x,y))
 print(model.score(x_test,y_test))
 print(np.sort(model.coef_,axis=0)[::-1])
 
+#%% Ridge 모델
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge
+
+
+##########데이터 로드
+
+x_data = np.array([
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+])
+y_data = np.array([3, 5, 7, 10, 12, 7, 13, 13, 12, 13, 12, 6])
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777)
+
+##########모델 생성
+
+model = Ridge(alpha=1)
+
+##########모델 학습
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+
+print(model.score(x_train, y_train)) #0.9341840732176964
+
+print(model.score(x_test, y_test)) #0.8483560379440559
+
+##########모델 예측
+
+x_test = np.array([
+    [4, 6]
+])
+
+y_predict = model.predict(x_test)
+
+print(y_predict[0]) #8.388713611241638
+
+#%% Lasso 모델
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+
+
+##########데이터 로드
+
+x_data = np.array([
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+])
+y_data = np.array([3, 5, 7, 10, 12, 7, 13, 13, 12, 13, 12, 6])
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777)
+
+##########모델 생성
+
+model = Lasso(alpha=10)
+#lasso는 규제가 너무 강하면 score값이 0이 나옴.
+
+##########모델 학습
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+
+print(model.score(x_train, y_train)) #0.9341840732176964
+
+print(model.score(x_test, y_test)) #0.8483560379440559
+
+##########모델 예측
+
+x_test = np.array([
+    [4, 6]
+])
+
+y_predict = model.predict(x_test)
+
+print(y_predict[0]) #8.388713611241638
+
+#%% 과적합 방지 시각화
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+
+
+np.random.seed(42)
+n_samples = 30
+X = np.random.rand(n_samples) * 10 - 5
+y = 2 * X**2 + 3 * X + 5 + np.random.randn(n_samples) * 5
+
+# 데이터 시각화
+plt.scatter(X, y, color='blue', label='Data points')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+# 과적합된 모델 (10차 다항식 회귀)
+degree = 10
+model_overfit = make_pipeline(PolynomialFeatures(degree), LinearRegression())
+model_overfit.fit(X[:, np.newaxis], y)
+
+# 예측 값 시각화
+X_test = np.linspace(-5, 5, 100)
+y_pred_overfit = model_overfit.predict(X_test[:, np.newaxis])
+
+plt.scatter(X, y, color='blue', label='Data points')
+plt.plot(X_test, y_pred_overfit, color='red', label=f'Overfitted model (degree={degree})')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+
+
+# 규제 적용 모델 (릿지 회귀)
+alpha = 1.0  # 규제 강도
+model_ridge = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=alpha))
+model_ridge.fit(X[:, np.newaxis], y)
+
+# 예측 값 시각화
+y_pred_ridge = model_ridge.predict(X_test[:, np.newaxis])
+
+plt.scatter(X, y, color='blue', label='Data points')
+plt.plot(X_test, y_pred_overfit, color='red', linestyle='dashed', label=f'Overfitted model (degree={degree})')
+plt.plot(X_test, y_pred_ridge, color='green', label=f'Ridge model (alpha={alpha})')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+#%% lasso 시각화
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Lasso
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import mean_squared_error
+
+
+# 데이터 생성
+np.random.seed(42)
+n_samples = 30
+X = np.random.rand(n_samples) * 10 - 5
+y = 2 * X**2 + 3 * X + 5 + np.random.randn(n_samples) * 5
+
+# 과적합된 모델 (10차 다항식 회귀)
+degree = 10
+model_overfit = make_pipeline(PolynomialFeatures(degree), Lasso(alpha=0))
+model_overfit.fit(X[:, np.newaxis], y)
+
+# 예측 값 시각화
+X_test = np.linspace(-5, 5, 100)
+y_pred_overfit = model_overfit.predict(X_test[:, np.newaxis])
+
+# 규제 적용 모델들
+alphas = [0.1, 1.0, 10.0]
+models_lasso = [make_pipeline(PolynomialFeatures(degree), Lasso(alpha=a, max_iter=10000)) for a in alphas]
+preds_lasso = []
+
+for model in models_lasso:
+    model.fit(X[:, np.newaxis], y)
+    preds_lasso.append(model.predict(X_test[:, np.newaxis]))
+
+# 시각화
+plt.figure(figsize=(12, 8))
+plt.scatter(X, y, color='blue', label='Data points')
+plt.plot(X_test, y_pred_overfit, color='red', linestyle='dashed', label='Overfitted model (alpha=0)')
+for i, alpha in enumerate(alphas):
+    plt.plot(X_test, preds_lasso[i], label=f'Lasso model (alpha={alpha})')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+# 모델 성능 평가
+for i, alpha in enumerate(alphas):
+    score = models_lasso[i].score(X[:, np.newaxis], y)
+    print(f'Lasso model (alpha={alpha}) - Score: {score:.4f}')
+    mse = mean_squared_error(y, models_lasso[i].predict(X[:, np.newaxis]))
+    print(f'Lasso model (alpha={alpha}) - Mean Squared Error: {mse:.4f}')
+    
+#%% ridge 시각화
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import mean_squared_error
+
+# 데이터 생성
+np.random.seed(42)
+n_samples = 30
+X = np.random.rand(n_samples) * 10 - 5
+y = 2 * X**2 + 3 * X + 5 + np.random.randn(n_samples) * 5
+
+# 과적합된 모델 (10차 다항식 회귀)
+degree = 10
+model_overfit = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=0))
+model_overfit.fit(X[:, np.newaxis], y)
+
+# 예측 값 시각화
+X_test = np.linspace(-5, 5, 100)
+y_pred_overfit = model_overfit.predict(X_test[:, np.newaxis])
+
+# 규제 적용 모델들
+alphas = [0.1, 1.0, 10.0]
+models_ridge = [make_pipeline(PolynomialFeatures(degree), Ridge(alpha=a)) for a in alphas]
+preds_ridge = []
+
+for model in models_ridge:
+    model.fit(X[:, np.newaxis], y)
+    preds_ridge.append(model.predict(X_test[:, np.newaxis]))
+
+# 시각화
+plt.figure(figsize=(12, 8))
+plt.scatter(X, y, color='blue', label='Data points')
+plt.plot(X_test, y_pred_overfit, color='red', linestyle='dashed', label='Overfitted model (alpha=0)')
+for i, alpha in enumerate(alphas):
+    plt.plot(X_test, preds_ridge[i], label=f'Ridge model (alpha={alpha})')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+# 모델 성능 평가
+for i, alpha in enumerate(alphas):
+    score = models_ridge[i].score(X[:, np.newaxis], y)
+    print(f'Ridge model (alpha={alpha}) - Score: {score:.4f}')
+    mse = mean_squared_error(y, models_ridge[i].predict(X[:, np.newaxis]))
+    print(f'Ridge model (alpha={alpha}) - Mean Squared Error: {mse:.4f}')
+    
+#%% k겹 교차검증 cross_var_score
+
+from sklearn.model_selection import cross_val_score
+
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+
+# 붓꽃 데이터셋 로드
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# 로지스틱 회귀 모델 생성
+model = LogisticRegression(max_iter=200)
+
+# 5-폴드 교차 검증
+scores = cross_val_score(model, X, y, cv=5)
+
+# 교차 검증 결과 출력
+print("Cross-validation scores:", scores)
+print("Average cross-validation score:", np.mean(scores))
+
+#%%
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+#from sklearn.model_selection import KFold
+#from sklearn.metrics import r2_score
+#from sklearn.metrics import make_scorer
+from sklearn.model_selection import cross_validate
+import pandas as pd
+import numpy as np
+
+##########데이터 로드
+
+x_data = np.array([
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+])
+y_data = np.array([3, 5, 7, 10 ,12, 7, 13, 13, 12, 13, 12, 6])
+
+##########데이터 분석
+
+##########데이터 전처리
+
+#x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777)
+
+##########모델 생성
+
+model = LinearRegression()
+
+##########모델 학습
+
+##########모델 검증
+
+cv_results = cross_validate(model, x_data, y_data) #내부적으로 fit
+#cv_results = cross_validate(model, x_data, y_data, cv=5, scoring='r2')
+#cv_results = cross_validate(model, x_data, y_data, cv=KFold(n_splits=5), scoring='r2')
+#cv_results = cross_validate(model, x_data, y_data, cv=5, scoring=make_scorer(r2_score))
+#cv_results = cross_validate(model, x_data, y_data, cv=KFold(n_splits=5), scoring=make_scorer(r2_score))
+
+print(cv_results['test_score'].mean()) #0.9333333333333332
+df = pd.DataFrame(cv_results)
+df = df.sort_values(by='test_score', ascending=False)
+print(df)
+'''
+   fit_time  score_time  test_score
+4  0.000741    0.000837    0.960204
+1  0.000488    0.000758    0.568472
+2  0.000485    0.000577    0.000000
+0  0.000674    0.000684   -1.147559
+3  0.000477    0.000811  -11.774764
+'''
+
+##########모델 예측
+
+model.fit(x_data, y_data)
+
+x_test = np.array([
+    [4, 6]
+])
+
+y_predict = model.predict(x_test)
+
+print(y_predict[0]) #1802.160302088625
+
+#%% GridSearchCV
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+#from sklearn.metrics import r2_score
+#from sklearn.metrics import make_scorer
+from sklearn.model_selection import GridSearchCV
+import pandas as pd
+
+##########데이터 로드
+
+x_data = np.array([
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+])
+y_data = np.array([3, 5, 7, 10 ,12, 7, 13, 13, 12, 13, 12, 6])
+
+##########데이터 분석
+
+##########데이터 전처리
+
+#x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777)
+
+##########모델 생성
+
+model = Lasso()
+
+##########모델 학습
+
+##########모델 검증
+
+print(model.get_params().keys()) #
+
+param_grid = {
+    'alpha': [0.5, 1, 1.5]
+}
+grid_search = GridSearchCV(model, param_grid=param_grid) 
+#grid_search = GridSearchCV(model, param_grid=param_grid, cv=5, scoring='r2') 
+#grid_search = GridSearchCV(model, param_grid=param_grid, cv=KFold(n_splits=5), scoring='r2') 
+#grid_search = GridSearchCV(model, param_grid=param_grid, cv=5, scoring=make_scorer(r2_score))
+#grid_search = GridSearchCV(model, param_grid=param_grid, cv=KFold(n_splits=5), scoring=make_scorer(r2_score))
+
+grid_search.fit(x_data, y_data)
+
+print(grid_search.best_params_) #{'alpha': 0.5}
+print(grid_search.best_score_) #-2.8938345053645973
+df = pd.DataFrame(grid_search.cv_results_)
+df = df.sort_values(by='mean_test_score', ascending=False)
+print(df[['params', 'mean_test_score']])   
+'''
+           params  mean_test_score
+0  {'alpha': 0.5}        -2.893835
+1    {'alpha': 1}        -3.618589
+2  {'alpha': 1.5}        -4.449471
+'''
+
+##########모델 예측
+
+x_test = np.array([
+    [4, 6]
+])
+
+best_model = grid_search.best_estimator_
+y_predict = best_model.predict(x_test)
+
+print(y_predict[0]) #8.279504382440336
+
+#%% GridSearchCV
+
+df = pd.read_csv('data/manhattan.csv',encoding='utf-8')
+y_target = df['rent']
+x_data = df.drop(['rent','rental_id','neighborhood','borough'],axis=1,inplace=False)
+
+x , x_test , y , y_test = train_test_split(x_data , y_target 
+,test_size=0.3, random_state=1)
+
+param_grid = {
+    'alpha': [0.1, 1, 10, 100]
+}
+
+model = Ridge()
+grid_search = GridSearchCV(model, param_grid, cv=5, scoring='neg_mean_squared_error')
+
+
+grid_search.fit(x,y)
+
+# 최적의 하이퍼파라미터 출력
+print("Best hyperparameters:", grid_search.best_params_)
+
+# 최적의 모델 출력
+best_model = grid_search.best_estimator_
+print("Best model:", best_model)
+
+# 테스트 세트에서 최적 모델 평가
+test_score = best_model.score(x_test, y_test)
+print("Test set score with best model:", test_score)
+
+
+#%% 모델링 예시
+
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.linear_model import Ridge
+
+##########데이터 로드
+
+train_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='train')
+test_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='test')
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_train_df = train_df.drop(['가격'], axis=1)
+x_test_df = test_df.drop(['가격'], axis=1)
+y_train_df = train_df['가격']
+y_test_df = test_df['가격']
+print(x_train_df.head())
+
+desc = x_train_df.describe()
+
+#Index(['년식', '종류', '연비', '마력', '토크', '연료', '하이브리드', '배기량', '중량', '변속기'], dtype='object')
+print(x_train_df.columns) 
+
+
+# StandardScaler객체 생성
+#scaler = StandardScaler()
+#연비, 마력, 배기량의 평균과 분산의 큰차이-> 피처 크기 정규화 필요
+from sklearn.preprocessing import StandardScaler
+# transformer = make_column_transformer(
+#     (StandardScaler(),['연비','마력','배기량']),
+#     (OneHotEncoder(), ['종류', '연료', '변속기']),
+#     remainder='passthrough')
+#make_column_transformer((scaler,[숫자형컬럼들]),
+#                         encoder,[범주형컬럼들])
+transformer = make_column_transformer(
+    (StandardScaler(),['년식','연비','마력','토크','하이브리드','배기량','중량']),
+    (OneHotEncoder(), ['종류', '연료', '변속기'])
+    )
+
+
+transformer.fit(x_train_df)
+x_train = transformer.transform(x_train_df) #트랜스포머의 transform() 함수는 결과를 넘파이 배열로 리턴
+x_test = transformer.transform(x_test_df)
+
+y_train = y_train_df.to_numpy()
+y_test = y_test_df.to_numpy()
+
+
+import seaborn as sns
+#평균이 왼쪽으로 치우진 왜곡된 멱함수분포(편포=skew )
+#왜도(치우침(편향된 분포)정도 = skewness) > 0 
+#오른쪽으로 편포 왜도 < 0    
+sns.distplot(y_train)
+#로그 변환
+import numpy as np
+y_train= np.log1p(y_train) 
+y_test= np.log1p(y_test)
+
+##########모델 생성
+
+#model = Ridge(alpha=10)
+model = Ridge(alpha=1) #피처값이 작아지므로 이 예제에서는 이 경우가 좀 더 점수가 높다
+##########모델 학습
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+print(model.score(x_train, y_train)) 
+print(model.score(x_test, y_test)) 
+
+#%% IQR를 사용한 이상치 제거
+
+from sklearn.model_selection import GridSearchCV
+from sklearn import datasets
+from sklearn.linear_model import Ridge
+dataset = datasets.load_boston()
+x_data = dataset.data
+y_data = dataset.target
+
+import seaborn as sns
+#이상치 확인
+sns.boxplot(data = x_data) 
+x_data = pd.DataFrame(x_data,columns=(dataset.feature_names))
+#1Q
+quartile_1 = x_data.quantile(0.25)
+#3Q
+quartile_3 = x_data.quantile(0.75)
+#IQR =3Q-1Q
+IQR = quartile_3 - quartile_1
+
+#1Q- IQR*1.5(ㅗ)보다 작거나 
+#3Q+ IQR*1.5(T)보다 큰 데이터는 이상치(outlier)
+#이상치 제거
+condition = (x_data < (quartile_1 - 1.5 * IQR)) | (x_data > (quartile_3 + 1.5 * IQR)) 
+condition.head(50)
+
+#데이터프레임.any(axis=1): 특정값을 가지는 행이 있는지 파악 가능
+#x의 특정 피처의 (가로방향으로) 값이 하나라도 True이면
+#True를 출력(해에 True가 한개 이상은 존재한다) 
+#예로  False,True -> True)
+#all() : (모든 피처가 True이면)True를 출력
+condition = condition.any(axis=1) #이상한 행 조건
+type(condition) #Series
+
+#불리언 값 not
+#not True
+#불리언 시리즈,배열 ~ (not 안됨)
+#import numpy as np
+#~np.array([False,False])
+
+'''
+18    False
+19     True
+
+예로 True인 행은 선택 
+'''
+condition = ~ condition#부정,이상하지 않은 행 조건
+
+#불리언 인덱스 시리즈로 정상행 선택 추출
+#인덱스번호가 비연속적
+x_data = x_data[condition]
+y_data= y_data[condition]
+
+#이상치 감소 확인
+sns.boxplot(data = x_data)
+
+
+#%% IQR를 사용한 이상치 제거 더 쉬운 예시
+
+import seaborn as sns
+import numpy as np
+import pandas as pd
+
+# 간단한 데이터셋 생성 (이상치 포함)
+data = pd.DataFrame({
+    'values': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 30, -10]  # 30과 -10은 이상치
+})
+
+# 박스플롯 시각화 (이상치 포함)
+sns.boxplot(data=data)
+plt.title('Boxplot with Outliers')
+plt.show()
+
+# IQR을 사용하여 이상치 제거
+Q1 = data['values'].quantile(0.25)
+Q3 = data['values'].quantile(0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+# 이상치 제거
+data_clean = data[(data['values'] >= lower_bound) & (data['values'] <= upper_bound)]
+
+# 이상치 제거 후 박스플롯 시각화
+sns.boxplot(data=data_clean)
+plt.title('Boxplot without Outliers')
+plt.show()
+
+# 결과 출력
+print("Original data shape:", data.shape)
+print("Cleaned data shape:", data_clean.shape)
+print("Removed outliers:")
+print(data[~((data['values'] >= lower_bound) & (data['values'] <= upper_bound))])
