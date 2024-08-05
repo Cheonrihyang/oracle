@@ -1,0 +1,44 @@
+링크주소는 비공개이니 절대 오픈하지마시고 학습용으로만 사용하세요(저작권 있음)
+
+
+AWS EC2 서비스 실습1-Linux 2023
+https://rumble.com/v33ujna-aws-ec2-1-linux-2023.html
+
+AWS EC2 서비스 실습2-Windows Server 2016
+https://rumble.com/v33ujx0-aws-ec2-2-windows-server-2016-2023-07-version.html
+
+AWS EBS 실습-update202307
+https://rumble.com/v33uk04-aws-ebs-update202307.html
+
+AWS S3서비스 실습1-2023
+https://rumble.com/v33uk40-aws-s3-1-2023.html
+
+S3서비스 실습2(정적호스팅)
+https://rumble.com/v4px2vw-s3-2.html
+
+S3 Gracier 실습
+https://rumble.com/v3u7fhs-s3-gracier-.html
+
+AWS VPC실습-2023
+https://rumble.com/v33ukie-aws-vpc-2023.html
+
+AWS IAM실습-2023
+https://rumble.com/v33ukq6-aws-iam-2023.html
+
+AWS RDS실습(MySQL)-2023
+https://rumble.com/v33ukx6-aws-rdsmysql-2023.html
+
+AWS DynamoDB실습-2023
+https://rumble.com/v33ukz4-aws-dynamodb-2023.html
+
+ELB실습2-1 
+https://rumble.com/v35cxxe-elb2-1.html
+
+ELB실습2-2 
+https://rumble.com/v35cy3m-elb2-2.html
+
+AutoScaling실습-update
+https://rumble.com/v35e48c-autoscaling-update.html
+
+Trusted Advisor-202308
+https://rumble.com/v35fzaw-trusted-advisor-202308.html

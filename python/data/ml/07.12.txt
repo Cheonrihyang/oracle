@@ -1,0 +1,194 @@
+
+BeautifulSoup	
+웹페이지	파싱
+웹 사이트 페이지 정보 추출
+
+주소분석 URL 패턴 : 반복 규칙
+
+find(태그)
+select(선택자)
+-----------------------------
+- quiz
+웹 크롤링
+네이버 시장지표의 미국 USD 환률과 주요뉴스제목 10개를 출력하라.
+https://finance.naver.com/marketindex/
+
+import requests, bs4
+url='https://finance.naver.com/marketindex/'
+
+resp = requests.get(url)
+resp.encoding # 'EUC-KR'
+html = resp.text
+
+#웹 스크래핑
+#BeautifulSoup 파서가 html문법과 패턴에 따라서
+#수집된 웹페이지의 요소들을 분리(파싱)시킨 BeautifulSoup 생성
+bs = bs4.BeautifulSoup(html, 'html.parser')
+
+#분리요소들중 원하는 요소들 선택 추출
+
+css_sel = '#exchangeList > li.on > a.head.usd > div > span.value'
+#exchange = bs.select(css_sel)
+#요소의 텍스트 추출
+#print(exchange[0].getText())
+
+#분리요소들중 원하는 요소 선택 추출
+exchange= bs.select_one(css_sel)
+
+#요소의 텍스트 추출
+print('usd환률 =',exchange.text)
+
+----------------------------------------------------
+import urllib.request as req , bs4
+
+url = 'https://finance.naver.com/marketindex/'
+
+resp=req.urlopen(url)
+html = resp.read().decode('euc-kr')
+bs= bs4.BeautifulSoup(html,'html.parser')
+ 
+#제목 
+#nth-child(n) 뺀다
+##content > div.section_news > div > ul > li:nth-child(1) > p > a
+##content > div.section_news > div > ul > li:nth-child(2) > p > a
+css_sel = '#content > div.section_news > div > ul > li > p > a' 
+main_news=bs.select(css_sel)
+
+print(f'메인뉴스 개수 = {len(main_news)}')
+for i, news in enumerate(main_news) :                   
+    print(f'{i+1}. {news.text}')
+    print('-'*50) 
+-----------------------------
+할리스커피 50개 매장 정보를 크롤링
+#단 출력 정보는 지역,매장명,주소,전화번호
+주소분석 URL 패턴 : 반복 규칙
+https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=1&sido=&gugun=&store=
+https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=2&sido=&gugun=&store=
+https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=3&sido=&gugun=&store=
+
+pageNo 파라미터값이 변수 (자료형,범위)
+반복회수 5
+https://www.hollys.co.kr/   
+-> Store
+
+import urllib.request as req , bs4
+def hollys_store(result):   
+    for page in range(1,6): #  페이지당 10개 매장 그래서 반복회수 5
+        #1페이지 pageNo=1 https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=1&sido=&gugun=&store=  
+        #pageNo=%d가 %page
+        Hollys_url = 'https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=%d&sido=&gugun=&store=' %page
+        print(Hollys_url)
+        html = req.urlopen(Hollys_url)
+        soupHollys = bs4.BeautifulSoup(html, 'html.parser')
+        #매장 정보가 테이블로 배치
+        tag_tbody = soupHollys.find('tbody') #10개 매장 행
+        for store in tag_tbody.find_all('tr'):            
+            store_td = store.find_all('td')
+            store_name = store_td[1].text
+            store_sido = store_td[0].text
+            store_address = store_td[3].text
+            store_phone = store_td[5].text
+            #리스트에서 하나의 행에 네개의 컬럼이 생성
+            result.append([store_name]+[store_sido]+[store_address]
+                          +[store_phone])
+           
+    return
+
+def main():
+    result = []
+    print('Hollys store crawling >>>>>>>>>>>>>>>>>>>>>>>>>>')
+    hollys_store(result)       
+    print(result[:])
+       
+main()
+-----------------------------------
+할리스커피 매장 정보 전부를 크롤링
+총매장개수 모르는 경우
+
+import urllib.request as req , bs4
+#import time
+from itertools import count
+def hollys_store2(result):#result은 이차리스트    
+    for page in count():          
+        Hollys_url = 'https://www.hollys.co.kr/store/korea/korStore2.do?pageNo=%d&sido=&gugun=&store=' %(page + 1)
+        print(Hollys_url)
+        #time.sleep(1)
+        html = req.urlopen(Hollys_url)
+        soupHollys = bs4.BeautifulSoup(html, 'html.parser')
+        ##contents > div.content > fieldset > fieldset > div.tableType01 > table > tbody  
+        tag_tbody = soupHollys.find('tbody')
+       
+        for store in tag_tbody.find_all('tr'):
+            print('>>>>' , store.text)
+            try:                
+                store_td = store.find_all('td')            
+                 # 탈출조건: td 인덱스 존재하지않으면(인덱스 예외) 함수 탈출
+                store_name = store_td[1].text
+                store_sido = store_td[0].text
+                store_address = store_td[3].text
+                store_phone = store_td[5].text                
+                
+                result.append([store_name]+[store_sido]+[store_address]
+                              +[store_phone])
+            except:
+                print('더이상 매장정보가 없다')                
+                return #함수 탈출    
+
+def main():
+    result = []
+    print('Hollys store crawling >>>>>>>>>>>>>>>>>>>>>>>>>>')
+    hollys_store2(result)      
+    print(result[:])
+    print('검색된 매장수 : %d' % len(result))
+       
+main()
+-----------------------
+Selenium은 웹 브라우져를 컨트롤하여 웹 UI 를 Automation 하는 도구 중의 하나이다.
+ Selenium은 Selenium Server와 Selenium Client가 있는데,
+ 로컬 컴퓨터의 웹 브라우져를 컨트롤하기 위해서는 
+Selenium Client 를 사용한다 (여기서는 Selenium 4 사용). 
+
+driver.execute_script("document.querySelector("
+#content > div.banner > div > form > button').click();")
+-------------------------------------------
+- quiz
+구글로 'numpy' 검색 
+검색결과리스트에서 첫번째 결과 링크
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+import time
+
+#구글 웹브라우저 새창이 뜬다
+chrome_options = Options()
+driver = webdriver.Chrome(options=chrome_options)
+driver.implicitly_wait(3) # 웹브라우저 3초 대기시간
+driver.get('https://www.google.com')
+
+#search box input의 요소의 name명이 q 인것을 확인
+#q인 요소 가져오기
+search_box = driver.find_element(By.NAME,"q")
+
+time.sleep(1) # 1초 실행 중지
+search_box.send_keys("numpy")
+
+time.sleep(1)# 1초 실행 중지
+#search_box.submit()#input폼 submit()
+search_box.send_keys(Keys.RETURN)#submit() 대신 엔터
+
+time.sleep(1)
+#검색결과리스트에서 첫번째 결과인 NumPy https://numpy.org/ 요소 선택
+#검색결과리스트에서 첫번째 결과 링크
+s = '#rso > div:nth-child(1) > div > div > div > div > div > div > div > div.yuRUbf > div > span > a > h3'
+res=driver.find_element(By.CSS_SELECTOR,s)
+res.text #'NumPy -'
+res.click() 
+
+
+
+
+
+
+

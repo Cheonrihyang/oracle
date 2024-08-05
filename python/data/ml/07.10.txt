@@ -1,0 +1,49 @@
+- quiz
+1. 경로를 입력받은 후
+해당 경로에 존재하는 파일과 디렉터리 리스트를 구한다.
+단 디렉터리이면 뒤에 (d)를 붙이고 파일이면 뒤에 (f)를 붙인다.
+
+2. 현재폴더내의 모든 .py파일을 
+ sorted 함수로 정렬하여 
+.py파일의 절대경로를 출력한다.
+단 파일 크기순으로 정렬한다.(sorted 함수의 key 인자에 파일 크기 리턴함수를 적용)
+[os.path.abspath(fname)+" "+str(os.path.getsize(fname)) + 'byte' 
+for fname in sorted(glob.glob('**/*.py', recursive=True), key=os.path.getsize)]
+
+def get_info(fname):
+	return os.path.abspath(fname)+" "+str(os.path.getsize(fname)) + 'byte' 
+
+[get_info(fname)
+for fname in sorted(glob.glob('**/*.py', recursive=True), key=os.path.getsize)]
+
+-------------------------------------------
+데이터 기반의 의사결정
+순수한 빅 데이터 수집 
+도구, 데이터 전문 보고서 
+
+JSON
+user.json
+{"name": "홍길동", "id": 152352, "history": [
+{"date": "2015-03-11", "item": "iPhone"}, 
+{"date": "2016-02-23", "item": "Monitor"}]
+} 
+
+--------------------
+선체 :클래스,테이블
+실체 :인스턴스,행
+디비 =워크북
+테이블 = 워크시트
+행 = 행
+컬럼 =셀
+------------------------------
+https://www.openoffice.org
+
+
+
+
+
+
+
+
+
+

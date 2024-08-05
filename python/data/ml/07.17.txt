@@ -1,0 +1,26 @@
+# DataFrame 인덱싱
+# 인덱서
+# loc[] ,iloc[],[] 인덱서
+# 행 혹은 열 혹은 행과 열을 동시에 지정선택
+# .loc[] : 행명과 열명으로 인덱싱
+# .iloc[]: 행번호와 열번호로 인덱싱
+# 열만 지정선택시 []로 인덱싱 가능(단 행인덱스 연속 슬라이싱은 가능 예로 df['a':'b']) 
+----------------------------
+- quiz
+titanic.csv
+
+Pclass 객실등급
+Fare :탑승료(운임) 
+Sex 성별 male, female 
+Survived 생존여부 0,1
+
+#읽어 들인 승객의  5명을 출력
+#승객 5명의  Survived와 Sex, Fare열을 출력
+#사망자 수를 출력
+#Fare가 50 이상인 Fare ,Survived 열을 출력
+#남자(male)이면서 Pclass가 1인 승객수를 출력
+#남자이면서 Pclass가 1이고 Fare가 50 이상인 승객수를 출력
+
+import pandas as pd
+#csv 파일을  DataFrame로 읽기 
+titanic = pd.read_csv('titanic.csv')

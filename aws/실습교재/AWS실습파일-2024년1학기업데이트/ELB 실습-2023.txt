@@ -1,0 +1,177 @@
+[ELB 테스트 실습을 위한 네트워크 구성]
+
+1.aws 관리콘솔에 로그온합니다.
+2.서비스 찾기 입력상자에서 VPC를 입력합니다.
+3.좌측 VPC 대시보드아래 VPC를 클릭하고 VPC생성 단추를 클릭합니다.
+4.VPC생성화면에서 이름태그부분에 ELB-VPC라고 입력하고 IPv4 CIDR 블록에 10.0.0.0/16 을 입력하고 화면 하단 VPC생성단추를 눌러 생성을 확인합니다  
+5.좌측Virtual Private Cloud 대시보드아래 VPC를 클릭하여 생성된 ELB-VPC가 표시되는가 확인합니다.
+6. 좌측Virtual Private Cloud 대시보드아래 서브넷을 클릭하여 가용영역A와 C영역을 대상으로 두개의 서브넷을 만듭니다
+먼저 가용영역 A에 서브넷 A를 생성하고 가용영역C에 추가 서브넷 C를 생성합니다. 
+7.서브넷 생성단추를 클릭하여 서브넷 생성화면에서 VPC ID 부분에 방금 생성한 "ELB-VPC"를 선택하고 서브넷 설정 섹션에서  서브넷 이름은 "AWS-ELB subnet2a"를 입력, 가용영역은 "ap-northeast-2a"를 선택합니다.
+8.IPv4 CIDR블록 입력상자에 "10.0.1.0/24"를 입력 후  하단 서브넷 생성 단추를 누릅니다.
+상단화면에 "서브넷 1개를 성공적으로 생성하였습니다 subnet-0aea2c76707a1dcb4" 라는 표시가 나타나면 x 를 클릭합니다.
+AWS-ELB subnet2a 서브넷 ID subnet-0aea2c76707a1dcb4와 같은 서브넷ID가 표시되는가 확인합니다.
+9.다시 상단의 서브넷 생성단추를 클릭하여  동일 VPC ID(ELB-VPC)에 대해 서브넷 이름은 "AWS-ELB subnet2c"를 입력 ,가용영역은 "ap-northeast-2c"를 선택합니다.
+10.IPv4 CIDR블록 입력상자에는  "10.0.2.0/24"를 입력 후  서브넷 생성 단추를 누릅니다.
+좌측 Virtual Private Cloud 대시보드의 서브넷을 클릭하여  2개의 가용용역(ap-northeast-2a와 ap-northeast-2c)에 2개의 서브넷이 추가 생성된것을 확인합니다.
+ 
+[인터넷 게이트 웨이(IGW) 생성후 VPC에 연결작업 수행]
+
+1.좌측 Virtual Private Cloud 대시보드아래 인터넷 게이트 웨이를 클릭하고 우측상단의 인터넷 게이트웨이생성 단추를 클릭합니다.
+
+2.인터넷 게이트웨이 생성화면에서 인터넷 게이트웨이 설정의 이름 태그에 "AWS-ELB-IGW"입력하고 인터넷 게이트웨이 생성단추를 클릭하여 생성
+
+3.좌측 Virtual Private Cloud 대시보드아래  인터넷 게이트웨이를 클릭해보면 "AWS-ELB-IGW" 라는 인터넷 게이트웨이가 생성되었지만 VPC와 연결되어있지 않은 ‘detached’ 상태이므로 만들어진 AWS-ELB-IGW를 선택한 후 화면상단의 작업단추에서 VPC에 연결단추를 클릭하여 사용 가능한 VPC에 이전에 작성한 "ELB-VPC" 에 해당하는 기본표시되는 id를 선택후 인터넷게이트웨이 연결단추를 클릭하여 AWS-ELB-IGW가 Attached 상태로 표시되는가 확인합니다
+
+[라우팅테이블 편집]
+
+1.좌측Virtual Private Cloud 대시보드아래 라우팅 테이블부분을 클릭하고 vpc열에 표시되는 이전 작업에서 생성한 vpc-0e628ed1210493536 | ELB-VPC 를 선택하고 화면 하단의 라우팅탭을 클릭하고 "라우팅편집" 단추를 클릭하여 라우팅편집화면에서 라우팅 추가 단추를 클릭하여 AWS-ELB-IGW에 대해   첫번째 표시된 대상입력상자에서 0.0.0.0/0을 선택한 후  두번째 대상 입력상자를 클릭하면 나타나는 목록 중 "인터넷 게이트웨이를 선택하여 표시되는 "igw-0009a6541883b4c8a AWS-ELB-IGW"을 선택하고  주황색 변경사항저장단추를 클릭하면 "rtb-02ff88c0c5d4a7853에 대한 라우팅을 업데이트했습니다" 라는 알림 메세지가 상단화면에 표시됩니다.
+
+2.아래 라우팅 탭에 추가된 라우팅정보가 아래와 같은 형태로 활성화된 상태로 표시됨을 확인합니다.
+0.0.0.0/0 igw-0009a6541883b4c8a   활성  아니요
+
+3.계속하여 라우팅테이블 화면에서 서브넷연결탭을 클릭하고  "서브넷 연결 편집" 단추를 클릭하여 라우팅테이블을적용할 서브넷들을연결합니다.이전 실습에서 만든 A와 C 서브넷이 표시되면 둘다 선택하고 "연결저장" 단추를 눌러 서브넷 연결편집을 완료합니다. 
+
+4.라우팅테이블 화면의 서브넷연결탭상의 명시적 서브넷 연결 섹션에 연결된 10.0.1.0/24,10.0.2.0/24 두개의 서브넷이 표시 될것입니다.
+
+
+[ELB 테스트 실습을 위한 웹서버생성]
+
+1.ec2서비스를 검색하여 1번째 웹서버 작성
+
+단계 1:  인스턴스 시작 화면에서 이름은 "AWS-ELB-WEBserver1" 입력 
+
+단계 2: Amazon Machine Image(AMI) 선택화면에서 기본값 " Amazon Linux" 선택 확인
+
+키페어는 새키페어생성 키페어 이름은 "aws-elb-key" 입력후 키페어 생성
+
+2.단계 2: 네트워크설정 섹션에서 "편집" 단추를 클릭 후  아래정보로 인스턴스 세부 정보 구성에서 웹 서버(현재 생성 중인 인스턴스)가 위치할 VPC, 서브넷을 지정합니다.또한, 인터넷에서 인스턴스에 연결할 수 있도록 퍼블릭 IP 할당을 활성화합니다. 
+
+VPC:vpc-xxxxxxxxx(ELB-VPC)선택
+서브넷:subnet-xxxxxx AWS-ELB subnet2a 선택
+퍼블릭 IP 자동 할당:활성화
+방화벽(보안그룹)은 보안그룹을 생성
+보안그룹이름 :aws-elb-sg 
+설명: aws-elb-sg for web server
+
+인바운드  보안 그룹 규칙- 2개의 규칙을 추가한다
+http,https 
+소스유형:위치무관(0.0.0.0)
+
+
+3.고급 세부 정보 섹션을 확장하고 아래쪽으로 스크롤하여 사용자 데이터 섹션을 찾습니다. 
+다음 텍스트를 복사하여 사용자 데이터 필드에 붙여넣습니다.
+
+#!/bin/bash
+yum install httpd -y 
+yum install epel-release -y
+yum install stress -y
+systemctl start httpd 
+systemctl stop firewalld 
+cd /var/www/html 
+echo "this is my First test site and the instance-id is " > index.html curl http://169.254.169.254/latest/meta-data/instance-id >> index.html
+
+
+4. "인스턴스 시작" 단추를 클릭하여 EC2인스턴스 생성  생성후 EC2 인스턴스연결 을 클릭후 EC2 인스턴스연결 탭의  퍼블릭 IP 주소를 복사하여 브라우저로 접속하여  웹서버기본 페이지에 "this is my First test site and the instance-id is curl http://169.254.169.254/latest/meta-data/instance-id"문자열이 표시되는지 확인합니다.
+
+웹서버생성 절차를 반복하여 서브넷:aws-elb subnet2c를 선택하여 AWS-ELB-WEBserver2라는 이름의 인스턴스를  추가작성합니다.
+
+(2번째 인스턴스의 키페어는 기존 "aws-elb-key" 선택
+중요!!!  서브넷은 "AWS-ELB subnet2c" 선택
+
+VPC:vpc-xxxxxxxxx(ELB-VPC)선택
+서브넷:subnet-xxxxxx AWS-ELB subnet2c 선택
+퍼블릭 IP 자동 할당:활성화
+방화벽:기존 보안 그룹 선택(aws-elb-sg)
+
+
+고급 세부 정보 섹션을 확장하고 아래쪽으로 스크롤하여 사용자 데이터 섹션을 찾습니다. 
+다음 텍스트를 복사하여 사용자 데이터 필드에 붙여넣습니다.
+
+#!/bin/bash
+yum install httpd -y 
+yum install epel-release -y
+yum install stress -y
+systemctl start httpd 
+systemctl stop firewalld 
+cd /var/www/html 
+echo "this is my Second test site and the instance-id is " > index.html curl http://169.254.169.254/latest/meta-data/instance-id >> index.html
+
+
+인스턴스 배포가 완료되면 생성된 두번째 EC2 인스턴스의 공용 ip주소를 복사 하여 브라우저에서 붙여넣기를 하여 첫번째 웹서버기본 페이지(instance2)가 나타나는지 확인합니다.
+
+[ELB 구성]
+1.좌측 EC2 대시보드아래 로드 밸런싱섹션의 로드밸런싱을 확장하고 로드밸런서를 클릭하고 "로드밸런서 생성" 단추를 클릭합니다.
+
+2.로드 밸런서 유형 선택 화면에서 application load balancer의 "생성" 단추를 클릭합니다.
+
+3.1단계: Load Balancer 구성화면의 기본구성 부분의 이름을 "AWSLab-ELB"를 입력
+
+네트워크 매핑 섹션  
+-------------------------
+VPC:ELB-VPC
+Mappings: ap-northeast-2a (apne2-az1) 과 ap-northeast-2c (apne2-az3) 선택
+
+보안 그룹 섹션
+--------------------------
+Security groups:aws-elb-sg 만 선택(default sg-03c54def49582fc87 이 표시되면 x눌러 삭제) 
+
+리스너 및 라우팅 섹션
+-----------------------------
+리스너부분의 로드밸런서프로토콜이 http가 선택되어 있는지 확인하고 "대상 그룹 생성"클릭하여 나타나는 화면에서
+대상 유형 선택이 인스턴스로 선택되어 있는지 확인
+
+대상 그룹 이름은 "aws-ELB-Webserver-Targetgroup"을 입력
+
+상태검사 섹션
+-------------------------------
+상태 검사 경로 입력상자에 "/index.html" 입력
+
+
+4.하단의 주황색 다음단추 클릭
+
+5.대상등록화면에서 사용 가능한 인스턴스 섹션에 실행중으로 표시된 인스턴스 2개 선택 후 하단의 "아래에 보류중인 것으로 포함" 단추 클릭(단추가 회색으로 변경되어 표시됨)
+대상보기 섹션에 2개의 인스턴스의 상태확인 열에  "대기 중" 상태로 표시
+
+6. '대상그룹 생성' 단추를 눌러 로드밸런서 그룹을 생성해줍니다.
+
+
+7.대상그룹 화면에서 aws-ELB-Webserver-Targetgroup이 표시되고  로드 밸런서 열에 "연결된 항목 없음 상태"로 표시되있음를 확인 
+
+
+8.작업 단추를 누르고 "새 로드밸런서와 연결" 선택하여 로드밸랜서를 작성합니다
+Application Load Balancer 생성 화면이 표시되고 로드 밸런서 이름 입력란에 "awslab-elb" 입력
+
+네트워크 매핑 
+VPC: ELB-VPC선택
+매핑: ap-northeast-2a (apne2-az1),ap-northeast-2c (apne2-az3) 선택
+보안 그룹:aws-elb-sg만선택
+
+리스너 및 라우팅
+대상그룹선택 클릭하여 표시되는 aws-ELB-Webserver-Targetgroup 선택
+
+9.하단의 "로드 밸런서 생성" 단추를 클릭
+
+10.Application Load Balancer 생성 화면에서 로드밸런서 보기 단추를 클릭후 조금 기다린 후  상태열이 프로비저닝중에서 활성으로 표시되면 확인후 선택하여 하단의 설정된 구성 검토 (3~5분정도 소요)
+
+좌측 대상그룹을 선택하고  대상그룹의 aws-ELB-Webserver-Targetgroup을 선택하여 하단 대상 탭에 Targets에 지정된 인스턴스 2개가 표시된 걸 확인합니다. 
+
+등록된 대상 섹션에서 상태확인 컬럼에 "healthy"라고 표시가 안되어 있으면  표시 인스턴스 2개를 선택후 섹션 우상단의  "대상등록" 단추를 눌러 등록을 합니다 등록이 완료되면  사용 가능한 인스턴스에서 등록된 2개의 인스턴스 상태가 ""healthy" 상태로 나타납니다
+
+
+6.좌측 대상그룹을 선택하고  Target groups의 aws-ELB-Webserver-Targetgroup을 선택하고 하단 상태검사 탭을 클릭하고 편집을 눌러 고급 상태 검사 설정을  표시하여 임계값인 5,2,5,30,200을 확인합니다.(필요시 edit단추를 누르고 고급 상태 검사 설정 화살표를 눌러 변경도 가능합니다
+
+참고로 값의미는 아래와 같습니다.
+*정상 임계 값, 비정상 임계값: 정상/비정상을 결정하기 위한 연속된 실패/성공 확인 횟수
+*Timeout(제한시간) : 상태 확인 응답 대기시간
+*Interval(간격): 인스턴스 상태 확인 간격
+*Success codes(성공 코드) : 응답 성공 확인 시 받을 HTTP 코드
+
+
+7.만들어진 AWSLab-ELB 로드밸런서의 상태가 프로비저닝에서 활성상태로 표시되면 화면하단 세부정보탭의 dns이름(예:AWSLab-ELB-1647788065.ap-northeast-2.elb.amazonaws.com)을 복사하고 웹브라우저를 열어 주소창에 복사된 주소를 붙여넣어 접속된 웹서버 기본 페이지가 표시되는가를 확인합니다.
+
+정상적으로 표시된 웹페이지가 어느서버에서 처리했는가를 확인하고 브라우저 탭을 하나더 열어 이전에 복사한 주소를 다시한번 붙여넣기를 시도하여 나타난  웹페이지가 이전 웹서버가 아닌 다른 웹서버가 처리하여 표시하는 것을 확인합니다.(계속 같은 인스턴스 페이지가 나타날 수 도 있으나 로드밸런서는 트래픽처리를 기본적으로 라운드로빈 방식으로 처리하므로 이 과정을 반복하면 순차적으로 다른웹서버가 트래픽을 돌아가면서 처리하는 것을 확인 할  수 있습니다)
+
+**잘 안되면 엣지브라우저와 크롬브라우저를 번갈아 이용하면서 동일 로드밸런서 DNS name에 대해 시도해봐도 좋습니다
+
+12.대상그룹을 클릭하여 생성된 aws-ELB-Webserver-Targetgroup을 클릭하여 health check를 확인합니다. 정상이라면 타겟들이 healthy로 표시 될 것입니다.

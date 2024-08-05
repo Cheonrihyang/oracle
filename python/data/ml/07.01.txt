@@ -1,0 +1,109 @@
+이정봉 
+bysluckey@hanmail.net
+
+-------------------------------------------------------
+파일탐색기창
+\\192.168.0.11
+anaconda
+https://www.anaconda.com
+
+3.8 버전을 설치
+https://repo.anaconda.com/archive/
+Anaconda3-2021.05-Windows-x86_64.exe
+---------------------------------
+#주요 라이브러리 정상설치 확인
+import sys
+
+print("python 버전 : {}".format(sys.version))
+
+import pandas as pd
+
+print("pandas 버전 : {}".format(pd.__version__))
+
+import matplotlib
+
+print("matplotlib 버전 : {}".format(matplotlib.__version__))
+
+import numpy as np
+
+print("numpy 버전 : {}".format(np.__version__))
+
+
+import scipy as sp
+
+print("scipy 버전 : {}".format(sp.__version__))
+
+import IPython
+
+print("IPython 버전 : {}".format(IPython.__version__))
+
+
+import sklearn
+
+print("sklearn : {}".format(sklearn.__version__))
+
+-------------------------------------
+F5: 파일 전부 실행
+F9 : 한줄 ,한줄의 일부,선택블록
+C + Enter : 셀 실행
+S + Enter : 현재 셀 실행후 다음셀로 이동
+C+S + O : 셀아웃라인 보이기 
+---------------------------------------
+https://wikidocs.net/book/1
+----------------------------------------
+데이터 관리
+관리(처리=사용)대상
+시스템 관리(처리)대상: 자원
+프로그램 관리(처리,프로그램에서 구현할)대상: 객체
+
+입력데이터 
+------------------------------------------
+반지름이(예로 6.0)인 원의 넓이를 계산하는 프로그램을 작성
+결과값 <-도(산)출-- 입력값 
+원의넓이 <-도(산)출  --반지름
+
+-------------------------------------------------
+-quiz
+1. 반지름이 (예로 6.0)인 원의 둘레를 계산하는 프로그램을 작성하시오.
+2. 반지름이 (예로 6.0)이고 원기둥의 높이가 100.0(사용자 입력)인 
+원기둥의 부피를 계산하는 프로그램을 작성하시오.
+
+--------------------------------------------------
+큰수,작은수로 정성분석
+'1.23'
+---------------------------------------------------
+출력형식
+코드 리펙토링 : 코드 중복 최소화
+
+=======
+ERP CODE
+=======
+
+-quiz
+1. 이메일주소에서 아이디 추출 프로그램을 작성
+email ='test@naver.com'
+아이디 test
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

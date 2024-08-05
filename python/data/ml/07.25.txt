@@ -1,0 +1,300 @@
+로지스틱 회귀
+대상목적변수 (연속속인 숫자가 아닌 범주)
+예로 여부 (True 1 ,False 0) 이진분류
+
+시그모이드 함수(Sigmoid Function)
+로지스틱 함수(Logistic Function) 
+x에 대한 선형함수를 0부터 1사이의 값만 나올 수 있도록 해줌
+-값이 커질수록 1에, 값이 작아질수록 0에 수렴하는 함수이다. 
+z = y = mx+b
+y = p(y|x) = logitstic=σ(z)=1/1+exp(z) =1/(1+e^-(mx+b )) =로짓
+x가 단위값마다 증가하면 자연상수(e)의 기울기(m, 회귀계수 )제곱 만큼 증가 
+
+특정사건이 일어날 확률 맞추기
+
+로지스틱 회귀모형에서는 선형회귀 방식을 분류에 적용한 것으로  
+선형회귀 방식기반에 시그모이드 함수를 이용해 분류하는 회귀 최적선 구한다
+
+- 분류 
+1 σ(z)≥0.5 
+0 σ(z)<0.5
+-----------------------------
+#%% StatsModels 로지스틱 회귀분석
+#점수
+score = [56, 60, 61, 67, 69, 55, 70, 44, 51, 64, 60, 50, 68, 72, 90, 93, 85, 74, 81, 88, 92, 97, 77, 78, 98]
+#합격여부 식별정보
+_pass = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+data = pd.DataFrame(
+    {"score": score, "_pass": _pass}
+)
+##로지스틱회귀모델
+model= sm.Logit.from_formula(data=data,formula='_pass ~ score')
+logis_model = model.fit()#
+
+logis_model.predict(dict(score=61)) #0.002305 
+logis_model.predict(dict(score=85)) #0.99997
+#score          0.6863
+#  _pass = exp^(0.6863 score)
+# log 0.6863 _pass =   score
+#score 1증가 ->  _pass확률의 log 가 0.68만큼 증가
+logis_model.params
+
+#P>|z| 0.131 그래서 score가 _pass에 유의한 영향을 미치치 않는다
+logis_model.summary()
+
+#시각화
+import numpy as np
+import matplotlib.pyplot as plt
+#합격 회귀 실제값 산점도
+#plt.scatter(x,y) 점그래프 x,y 좌표에 점 그린다
+# 원데이터 s=마커크기
+plt.scatter(score,  data['_pass'], label="y", marker='o', s=100)
+#합격 회귀 예측값 산점도
+# logis.predict(score) 예측값
+# 시그모이드(로지스틱) 함수: 임계값 0.5에 해당하는 70점대
+# 70대점가 합격확률 0.5를 넘어서는 변곡점
+plt.scatter(score, logis_model.predict(data['score']),  marker='x')
+           
+plt.xlim(0, 100)
+#%%
+#다중 로지스틱 회귀분석(점수 2개)
+import pandas as pd
+score1 = [56, 50, 30, 62, 69, 55, 72, 44, 51, 64, 60, 59, 68, 72, 80, 93, 65, 94, 81, 70, 92, 90, 77, 78, 100]
+score2 = [56, 60, 61, 67, 69, 55, 70, 44, 51, 64, 60, 50, 68, 72, 90, 93, 85, 74, 81, 88, 92, 97, 77, 78, 98]
+_pass = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+data = pd.DataFrame(
+    {"score1": score1,"score2": score2,"_pass": _pass}
+)
+
+##로지스틱회귀모델
+model= sm.Logit.from_formula(data=data,formula='_pass ~ score1 + score2')
+logis_model = model.fit()
+logis_model.summary()
+---------------------------------------
+- quiz
+상품매장 방문고객의 간단 프로필기반의 상품구매 여부 예측(로지스틱회귀 분석)
+나이,월수입에 따른 상품구매여부(범주형) 분류
+상품구매여부 = 0:비구매, 1:구매
+
+모델링, 모델평가, 예측 ,예측값과 실제값을 비교 시각화
+
+# 한글 컬럼명으로 변경할때 ['age','income','buy'] 추가되므로 skiprows=[0] 없으면 기존 컬럼명 헤더행이 
+#data 0번 행에 내려간다 
+data = pd.read_csv('data/buy.csv',skiprows=[0],names=['age','income','buy'])
+data.info()
+
+data = data.rename(columns = {'나이':'age','월수입':'income','상품구매여부':'buy'})
+data.info()
+-------------------------
+#logit을 임계값 0.5를 설정해서
+#0/1로 변환
+th =0.5
+def cut_binary(y):
+    y[y<th]=0
+    y[y>=th]=1
+    
+    return y.astype(int)
+
+data[['pred_buy_cut']] = data[['pred_buy']].apply(
+    cut_binary,
+    axis=0)
+
+#실제값 0이면 예측값이 대체적으로 0.5보다 작고
+#실제값 1이면 예측값이 대체적으로 0.5보다 크다.  
+sns.boxplot(x='buy', y='pred_buy', data=data)
+-------------------------------
+사이킷런(scikit-learn) 선형회귀 
+https://scikit-learn.org/stable/api/index.html
+
+https://wikidocs.net/39243
+fit(독립변수는 2차리스트나 배열 혹은 DataFrame,
+종속변수는 1차리스트나 배열 혹은 시리즈)
+----------------------------------
+#%%
+from sklearn.linear_model import LinearRegression
+
+x = [3.52, 2.58, 3.31, 4.07, 4.62, 3.98, 4.29, 4.83, 3.71, 4.61, 3.90, 3.20]
+#가상 가계소득 
+x2 = [4.52, 2.58, 3.31, 4.05, 4.62, 3.58, 4.29, 4.63, 3.71, 4.61, 3.80, 3.20]
+y = [2.48, 2.27, 2.47, 2.77, 2.98, 3.05, 3.18, 3.46, 3.03, 3.25, 2.67, 2.53]
+data = pd.DataFrame({"x":x,"x2":x2,"y":y})
+
+#다항선형회귀
+lr = LinearRegression()
+#fit(독립변수 2차리스트나 배열 혹은 DataFrame,종속변수 1차리스트나 배열 혹은시리즈)
+#lr.fit(data['x'].to_frame() ,data['y'] )
+lr.fit(data[['x','x2']] ,data['y'] )
+
+lr.coef_
+lr.intercept_
+
+#예측
+lr.predict([[3.52,4.52]])
+y_preds= lr.predict(data[['x','x2']]) 
+#%%
+
+# 모델 성능평가 mse(대략 예측값과 실제값의 차이로 0에 가까울 수록 좋은 성능) , rmse 
+from sklearn.metrics import mean_squared_error,r2_score
+#학습평가지표
+mse= mean_squared_error(y ,y_preds)#0.02
+np.sqrt(mse)#0.14
+
+#예측평가지표
+#R2
+r2_score(y, y_preds) #0.8359 (대략 1- mse )
+
+#train(훈련,학습)데이터세트, 정확도(정답맞춤)점수
+lr.score(data[['x','x2']] ,y_preds ) #1.0
+
+#별도의 테스트데이터세트 
+x_test = [3.51, 2.53, 3.32, 4.07, 4.62, 3.98, 4.29, 4.81, 3.71, 4.62, 3.90, 3.20]
+x2_test = [4.50, 2.58, 3.32, 4.05, 4.62, 3.57, 4.25, 4.63, 3.71, 4.62, 3.70, 3.20]
+data_test = pd.DataFrame({"x":x_test,"x2":x2_test})
+lr.score(data_test[['x','x2']] ,y_preds )#0.99
+
+
+#statsmodels의 통계 정보
+import statsmodels.formula.api as smf
+model=smf.ols(data=df,formula='y~x + x2') 
+reg_model = model.fit()
+
+#평가
+reg_model.summary() #R-squared: 0.836
+
+-----------------------------
+https://wikidocs.net/45727
+사이킷런 LinearRegression을 이용한 toluca_company 선형회귀분석
+(시각적 탐색, 모델링, 예측, 다양한 평가하기)  
+Lot_size : 제품크기(x), Work_hours : 작업시간(y)
+
+df = pd.read_csv('data/toluca_company.csv') ## 데이터 불러오기 
+
+#시각적 탐색(Lot_size,Work_hours간 상관성이 보인다)
+import seaborn as sns
+sns.pairplot(df)
+#sns.boxplot(x='LotSize', y='WorkHours', data=df)
+
+##데이터셋을 제품크기(x),작업시간(y)로 분할
+y_data = df['WorkHours']#시리즈
+#y를 프레임에서 제외, 리턴형은 DataFrame 
+x_data = df.drop('WorkHours',axis=1)
+type(x_data) #DataFrame(시리즈 아님)
+type(y_data) #Series
+
+#모델링
+lr = LinearRegression()
+lr.fit(x_data, y_data)
+
+#회귀 계수값
+lr.coef_
+#절편값
+lr.intercept_
+
+#회귀예측값
+y_preds = lr.predict(x_data)
+
+#모델 평가
+mse = mean_squared_error(y_data,y_preds) #크게 출력
+r2_score(y_data, y_preds)
+
+#rmse
+#mse를 실제 값과 유사한 단위로 작게 변환
+import numpy as np
+np.sqrt(mse)
+
+#mean_absolute_error(y_data ,y_preds)
+---------------------------
+보스턴 주택 가격 예측
+https://wikidocs.net/49966 
+
+보스턴 지역의 주택 가격에 영향을 미치는 요소
+#%%
+#보스턴 주택 가격 예측
+import numpy as np
+import pandas as pd
+from sklearn import datasets
+#
+from sklearn import model_selection
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
+
+dataset = datasets.load_boston()
+x_data = dataset.data
+y_data = dataset.target
+#print(x_data.shape) #(506, 13)
+#print(y_data.shape) #(506,)
+
+####################
+#train_test_split
+#train과 test 데이터 서브셋으로 분할
+#test_size=테스트 데이터셋의 비율
+x_train, x_test, y_train, y_test = model_selection.train_test_split(x_data, y_data,
+                                                                    test_size=0.3,
+                                                                    random_state=1)
+
+#%%
+#기본선형회귀모델
+estimator = LinearRegression()
+
+estimator.fit(x_train, y_train)
+
+y_predict = estimator.predict(x_train) 
+score = metrics.r2_score(y_train, y_predict)
+print(score) #0.71
+
+y_predict = estimator.predict(x_test) 
+score = metrics.r2_score(y_test, y_predict)
+print(score) #0.78
+
+#%%
+#DataFrame기반 보스턴 주택 가격 예측
+# boston 데이타셋 로드
+boston = datasets.load_boston()
+boston.keys()
+boston.data
+boston.feature_names
+boston.target
+bostonDF = pd.DataFrame(boston.data , columns = boston.feature_names)
+bostonDF['PRICE'] = boston.target
+bostonDF.info()
+bostonDF.describe()
+bostonDF.head()
+#시각적 탐색분석
+#내 특성변수간의 상관관계 플롯
+import seaborn as sns
+sns.pairplot(data=
+   bostonDF[['RM','CRIM','ZN','PRICE']])
+
+lr = LinearRegression()
+lr.fit(pd.DataFrame(bostonDF["RM"]) ,
+       bostonDF['PRICE'] )
+y_preds = lr.predict(pd.DataFrame(bostonDF["RM"]))
+
+# 평가 mse , rmse 
+# 모델 성능평가 mse(대략 예측값과 실제값의 차이로 0에 가까울 수록 좋은 성능) , rmse 
+from sklearn.metrics import mean_squared_error,r2_score
+mse = mean_squared_error(bostonDF['PRICE'], y_preds)
+rmse = np.sqrt(mse)
+#R2 = 0.48  PRICE 변동량을 약48% 설명
+r2_score(bostonDF['PRICE'], y_preds)
+#정확도 점수 = 0.48  RM이 PRICE를 약48% 예측(정답맞춤률)
+#y(실측값)가 연속적인 수치인경우(선형회귀) R2를 score로 볼 수 있다
+
+#R2 = score(x,y실값) 
+lr.score(pd.DataFrame(bostonDF["RM"]) ,bostonDF['PRICE']  )
+#y^(예측값)인경우(선형회귀) R2는 1
+lr.score(pd.DataFrame(bostonDF["RM"]) ,y_preds  ) #1.0
+----------------------
+파이썬시험_답안_본인이름.txt 
+
+bysluckey@hanmail.net
+
+
+
+
+
+
+
+

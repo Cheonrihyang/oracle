@@ -1,0 +1,238 @@
+: [WinError 5] 액세스가 거부되었습니다
+python -m pip install --upgrade pip
+conda install -c conda-forge folium
+스파이더 시작
+---------------------------------
+공분산
+평균을 중심으로 각 자료들이 어떻게 분포되어 있는지 크기(강도)와 방향성
+x(설명,원인)편차의 변화량과 y(결과)편차의 변화량간의 관계성
+cov(x,y) = (x-x평균)(y-y평균)합의 평균
+의존(종속)성 정도 = 공분산 크기
+방향성 =공분산 부호
++ : 비례 관계 
+- : 반비례
+
+공분산이 0  선형관계 X   독립적인 관계
+
+공분산 크기 클수록 강한 관계
+
+----------------------------------------
+상관성 :두 변수간의 관련(연관)성
+공분산 정규화 -> 크기 정규화
+corr(x,y) = cov(x,y) /(x표준편차)(y표준편차) 
+상관계수 
+-1 ~ 1
+
+1에 가까우면 서로 관계가 강해지는 것을 의미
+절댓값이 0.4 ~ 0.6 보통 관계(선형상관관계)
+0.6 이상이면 강한 관계
+0에 가까우면 서로 관계가 없다는 것을 의미
+
+절댓값이 0.5 분류	
+
+부호가 (+)인 경우 x가  증가할 수록 y도 증가함(비례 관계,  학습량과 기대성적)
+부호가 (-)인 경우 x가  증가할 수록 y는 감소함(반비례 관계,  흡연량과 기대수명)
+---------------------------------
+상관계수에 제곱을 하면 결정계수(R2) :설명력
+
+--------------------------------
+회귀분석
+독립변수,설명변수들에 따른(의한,때문에)변화가 
+결과(연속적인 숫자형 종속변수)의 변화에 얼마나 영향을 미치는지(영향력 정도)를 분석
+
+예)학습량과 기대성적
+학습량(학습일수와 시수등 독립변수,설명변수)에 
+따른(의한,때문에) 기대성적(점수와 같은 연속적인 숫자형 종속변수)의 영향력 정도를 분석
+-------------------------------
+다항식
+각 항은 계수와 변수의 곱 2x
+계수가 클수록 영향력이 크다
+
+항의 차수
+변수가 몇번 거듭하여 곱 x^3
+= 레벨 -> 레벨이 높을수록 낮은 차수의 항과 비교할 수 없는 큰 변화폭을 갖는다.
+->  차수가 가장 큰 항이 전체 식의 값을 주도,특징 짓는다
+---------------------------------
+선형회귀분석(linear regression analysis)
+흩어진 데이터를 가장 잘 설명할 수 있는 평균선(패턴)을 구하는 분석
+선형 회귀는 이 패턴이 직선의 모습을 하고 있는데 'y = wx + b'라는 1차 방정식으로 표현
+오차 =실제값간의 차이
+잔차 =실제값간의 차이
+----------------------------------
+https://wikidocs.net/39502
+
+SSE( 오차제곱합= sum of squared error,Sum Squared Error) =  (실값-회귀예측값)^2의합)
+= RSS
+
+SSE를 최소화(OLS)하는 기울기(회귀계수)를 가지는 최적 회귀식 찾자
+----------------------------------------------
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+from scipy import stats, polyval
+
+# 식료품 물가상승률 (요소 개수 12) 
+x = [3.52, 2.58, 3.31, 4.07, 4.62, 3.98, 4.29, 4.83, 3.71, 4.61, 3.90, 3.20]
+# 엥겔지수
+y = [2.48, 2.27, 2.47, 2.77, 2.98, 3.05, 3.18, 3.46, 3.03, 3.25, 2.67, 2.53]
+
+#np.poly1d(입력배열, 변수명)으로 다항식을 생성. #입력배열요소들은 다항식의 계수들로 사용
+predict=np.poly1d([model.slope, model.intercept],variable = 'x')
+-----------------------
+- quiz
+출석시간이 시험점수에 어떤 영향을 미치는지를 확인
+선형회귀분석(모델링, 예측, 시각화하기)
+
+#출석시간
+x= [2, 5, 6, 8, 12, 5, 9, 9, 8]
+#시험점수
+y= [3, 5, 7, 10, 12, 7, 13, 13, 12]
+
+-----------------------------------------------------
+#%%
+#statsmodels 패키지 기반 단순(단항)회귀 분석
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+# 식료품 물가상승률 (요소 개수 12) 
+x = [3.52, 2.58, 3.31, 4.07, 4.62, 3.98, 4.29, 4.83, 3.71, 4.61, 3.90, 3.20]
+# 엥겔지수
+y = [2.48, 2.27, 2.47, 2.77, 2.98, 3.05, 3.18, 3.46, 3.03, 3.25, 2.67, 2.53]
+#선형회귀모델
+df = pd.DataFrame({"x":x,"y":y})
+#선형회귀모델 설정
+#smf는 상수항(절편 초기값)이 자동 추가
+model=smf.ols(data=df,formula='y~x') #formula=종속변수 ~ 독립변수
+#sm는 상수항(절편 초기값)이 수동 추가
+#cx = sm.add_constant(x) #x에 원소가 1인 상수항(절편 초기값)이 추가
+#model=sm.OLS(y,cx) #종속변수 , 절편 초기값이 추가된 독립변수
+#회귀모델 학습
+reg_model = model.fit()
+#%%
+reg_model.params
+# Intercept    0.919581
+# x            0.495ㅋ
+# y=0.495*x+0.919
+
+#예측
+reg_model.predict(dict(x=3.52))#2.664
+
+ry=reg_model.predict(df['x'])
+#평가
+reg_model.summary()
+'''
+1.R=상관계수 
+양의 상관관계가 높다
+2. 결정계수는 설명(독립)변수의 변동량으로 설명되는 결과(종속)변수의 변동량을 의미
+
+R2 = 1 -  (회귀식의종속변수-종속변수평균)제곱들의합
+          /(실종속변수-종속변수평균)제곱들의합
+(회귀식의종속변수-종속변수평균)들의합은 회귀식의 예측값이 실종속변수에 대해
+미처 설명하지 못한 변동량(차이)으로 작아질수록 R2는 커진다.   
+대략 0.8 높은편 ->  엥겔지수 변동을 80%정도 잘 설명한다 
+3. pvalue = 0.00009 
+유의하다 = 적합(good fit)하다
+3. stderr =  표준오차 = 표본평균의 퍼짐 =  표준편차/표본개수 
+대략 0.07 낮은편 정확하다
+          
+'''
+sns.regplot(x='x',y='y',data=df)
+sns.regplot(x='x',y=ry,data=df)
+#%%
+import pandas as pd
+import statsmodels.formula.api as smf
+#출석시간
+x = [2, 5, 6, 8, 12, 5, 9, 9, 8]
+#시험점수
+y = [3, 5, 7, 10, 12, 7, 13, 13, 12]
+df = pd.DataFrame({"x":x,"y":y})
+#선형회귀모델 설정
+model=smf.ols(data=df,formula='y~x') #formula=종속변수 ~ 독립변수
+#회귀모델 학습
+reg_model = model.fit()
+reg_model.params
+# Intercept    0.967
+# x            1.14
+# y = 1.14 x + 0.967
+#예측 
+reg_model.predict(dict(x=3.52))
+ry=reg_model.predict(df['x'])
+
+#평가
+#R-squared:      0.815
+reg_model.summary()
+#시각화
+sns.regplot(x='x',y='y',data=df)
+sns.regplot(x='x',y=ry,data=df)
+-------------------------------------------
+<class 'statsmodels.iolib.summary.Summary'>
+"""
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.797
+Model:                            OLS   Adj. R-squared:                  0.777
+Method:                 Least Squares   F-statistic:                     39.34
+Date:                Wed, 24 Jul 2024   Prob (F-statistic):           9.24e-05
+Time:                        17:45:08   Log-Likelihood:                 5.0705
+No. Observations:                  12   AIC:                            -6.141
+Df Residuals:                      10   BIC:                            -5.171
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept      0.9196      0.311      2.956      0.014       0.226       1.613
+x              0.4956      0.079      6.272      0.000       0.320       0.672
+==============================================================================
+Omnibus:                        1.963   Durbin-Watson:                   1.371
+Prob(Omnibus):                  0.375   Jarque-Bera (JB):                0.871
+Skew:                           0.007   Prob(JB):                        0.647
+Kurtosis:                       1.680   Cond. No.                         26.0
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+"""
+-------------------------------------------------
+#%% statsmodels 패키지 기반 다항회귀 분석
+#엥겔지수 = 식료품 물가상승률 x + 가계소득 x2
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+x = [3.52, 2.58, 3.31, 4.07, 4.62, 3.98, 4.29, 4.83, 3.71, 4.61, 3.90, 3.20]
+#가상 가계소득 
+x2 = [4.52, 2.58, 3.31, 4.05, 4.62, 3.58, 4.29, 4.63, 3.71, 4.61, 3.80, 3.20]
+y = [2.48, 2.27, 2.47, 2.77, 2.98, 3.05, 3.18, 3.46, 3.03, 3.25, 2.67, 2.53]
+df = pd.DataFrame({"x":x,"x2":x2,"y":y})
+
+#선형회귀모델 설정
+#smf는 상수항(절편 초기값)이 자동 추가
+model=smf.ols(data=df,formula='y~ x + x2') #formula=종속변수 ~ 독립변수
+#sm는 상수항(절편 초기값)이 수동 추가
+#cx = sm.add_constant(df[['x','x2']]) #x에 원소가 1인 상수항(절편 초기값)이 추가
+#model=sm.OLS(y,cx) #종속변수 , 절편 초기값이 추가된 독립변수
+reg_model = model.fit()
+#예측
+reg_model.params
+# const    1.033180
+# x        0.693390
+# x2      -0.225672 #가계 소득이 높아질수록 엥겔지수의 비중이 감소
+
+#smf 예측방식 
+reg_model.predict(dict(x=3.52,x2=4.52)) #2.453877
+#sm 예측방식
+#reg_model.predict([[1,3.52,4.52]]) #2.453877
+
+#평가
+reg_model.summary()
+
+#각 항의 잔차(오차) 플롯
+reg_model.resid.plot()
+#subplot
+plt.subplot(1, 2, 1) 
+sns.regplot(x=df['x'], y=df['y'], color='red')
+plt.subplot(1, 2, 2)
+sns.regplot(x=df['x2'], y=df['y'], color='green')

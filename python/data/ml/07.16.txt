@@ -1,0 +1,162 @@
+arr=np.array([[1, 0, 3],
+       [4, 5, 6],
+       [9, 8, 8]])
+
+#최신순 5개
+select top(5)  ename,hd
+...
+order by hd desc
+#최신순 5%
+select top(5) recent ename,hd
+...
+order by hd desc
+
+select  ename,hd limit 5 offset 0
+0+1 행~ 5행 =1,2,3,4,5행
+select  ename,hd limit 5 offset 5
+----------------------------
+- quiz
+20개 정수난수 1차 배열을 생성하고 최소,평균,최대와 표준편차를 구해본다
+그리고 상위 30%이내에 해당하는 값들 추출후 중복된 성분은 제거한다. 
+
+import numpy as np
+
+arr = np.random.randint(0,20,size=20)
+
+np.min(arr)
+np.mean(arr)
+np.max(arr)
+np.std(arr)
+
+#상위 30%내에 해당하는 값들 추출
+th=np.sort(arr)[::-1][int(0.3 * len(arr))]
+#상위 30%내 중복된 성분이 제거
+print(np.unique(arr[arr >= th])[::-1])
+
+school_2019.csv
+파일 쓰기
+arr=np.array([1,2,3])
+#형식기본 실수(지수표기법), 분리자는 공백 (comments=''는 ''헤더명앞에 코멘트#붙는거 방지)
+np.savetxt('arr.csv',[arr],delimiter=',',fmt='%d',
+           encoding='utf-8',header='col1,col2,col3',comments='')
+
+#2차배열
+#2차 배열 경우는 배열명 newline='\n' 기본 
+arr=np.array([[1,2,3],
+              [4,5,6]])
+np.savetxt('arr_matrix.csv',arr,delimiter=",",fmt='%d',
+newline='\n',comments='',header='col1,col2,col3', encoding='utf-8')
+
+파일 읽기
+arr3 =np.loadtxt('arr.csv',delimiter=",",dtype=np.int64,encoding='utf-8',skiprows=1)
+
+arr3 = np.loadtxt('arr_matrix.csv',encoding='utf-8',delimiter=',',dtype=np.int64)
+--------------------------------------
+탐색적	데이터	분석(EDA.	exploratory	data	analysis)은	기계	학습,	자연어	처리,	패턴	인식	등
+모든	데이터	과학의	출발점이라고	할	수	있습니다.	이는	각종	통계적	기법을	적용하여	데이터의	주
+요	특징을	발견하고,	이를	시각화하여	표현하는	일련의	과정을	포괄합
+
+
+import csv
+-------------------------------------
+- quiz
+학급당 학생수(학생 /학급수)와 교사1인당 학생수(학생수/교사수)를 출력한다.
+단 / 는 나눗셈을 의미하고 학급당 학생수, 교사 1인당 학생수를 
+원배열(data)의 2열과 4열에 삽입하여 배열을 출력한다.
+만약 반올림 처리가 필요한 경우 np.round() 활용
+
+과밀학급인 학교 행을 출력한다.
+단 과밀조건은 학급당 학생수 30인 이상
+
+import numpy as np
+
+list_data = np.loadtxt('school_2019.csv',delimiter=',',
+                  dtype=np.str_, encoding='utf-8',
+                  skiprows=1)
+#대략적인 정성적 구조적 분석 
+#학급수,학생수,교사수 경우 업무적으로 정수형
+#나머지는 문자형
+list_data.shape
+list_data[0]
+list_data[:5,:]
+
+# 결측치 존재 여부 무시
+# 문자에서는 np.isnan() 미동작 
+np.isnan(list_data).sum()
+
+#ETL
+#1.급수,학생수,교사수 열선택과 형변환
+data=list_data[:,2:].astype(np.int64)
+
+#2. 최대 학급수,최대 학생수 인덱스,최대 교사수 요소 인덱스
+#[ 138, 1999,  138]
+max_index = np.argmax(data, axis=0)
+#####최대 학급수인덱스의 해당 학교명
+max_class = list_data[max_index[0],1]
+#최대 학급수인덱스의 해당 학급수
+num_class = list_data[max_index[0],2]
+#####최대 학생수의 학교명
+max_student=list_data[max_index[1],1]
+#최대 학생수의 학생수
+num_student=list_data[max_index[1],3]
+#####최대 교사수의 학교명
+max_teacher=list_data[max_index[2],1]
+#최대 교사수의 교사수
+num_teacher=list_data[max_index[2],4]
+
+print('최대 학급수의 초등학교 : %s, 학급수 : %s개 '
+      % (max_class, num_class))
+print('최대 학생수의 초등학교 : %s, 학생수 : %s명' 
+      % (max_student, num_student))
+print('최대 교사수의 초등학교 : %s, 교사수 : %s명' 
+      % (max_teacher, num_teacher))
+
+학급당 학생수(학생 /학급수)와 교사1인당 학생수(학생수/교사수)를 출력한다.
+단 / 는 나눗셈을 의미하고 학급당 학생수, 교사 1인당 학생수를 
+원배열(data)의 2열과 4열에 삽입하여 배열을 출력한다.
+만약 반올림 처리가 필요한 경우 np.round() 활용
+
+#행삽입
+#np.insert(배열,삽입인덱스,행배열 혹은 임의의 값,axis=0)
+#열삽입
+#np.insert(배열,삽입인덱스,열배열 혹은 임의의 값,axis=1)
+
+arr = np.array([[1,2], [3,4]])
+np.insert(arr,1,[0,0],axis=1)
+
+#지역,학교명,학급수,학생수,교사수
+list_data = np.loadtxt('school_2019.csv',delimiter=',',
+                  dtype=np.str_, encoding='utf-8',
+                  skiprows=1)
+#학급수(0),학생수(1),교사수(2)
+data= list_data[:,2:].astype(np.int32)
+
+#shape 틀 구조를 5열 추가 정의 
+#학급수(0),학생수(1),교사수(3)
+#학급당 학생수에 대한 2열 추가(모든 행값은 0으로 초기화)
+data =np.insert(data,2,0,axis=1)
+#교사 1인당 학생수에 대한 4열 추가(모든 행값은 0으로 초기화)
+data =np.insert(data,4,0,axis=1)
+
+#학급당 학생수 =학생수 /  학급수
+data[:,2] = np.round(data[:,1]/data[:,0])
+
+#교사당 학생수 =학생수 /  교사수 결과를 해당열에 대입
+#교사수 인덱스 번호가 2에서 3으로 변경
+data[:,4]=np.around(data[:,1]/data[:,3])
+print(data)
+
+#과밀학급인 학교 행을 출력한다.
+#단 과밀조건은 학급당 학생수 30인 이상
+
+data[:,2] >=30
+#과밀학급 행 인덱스 배열이 포함된 튜플
+np.where(data[:,2] >=30)
+#과밀학급 행
+list_data[np.where(data[:,2] >=30)]
+#과밀학급 학교명
+list_data[np.where(data[:,2] >=30),1]
+
+
+
+

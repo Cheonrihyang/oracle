@@ -1,0 +1,370 @@
+-quiz
+1. 한글컬럼이름이 조금 복잡해서 컬럼이름을 수정 간소화하고 loc[] 방식을 사용한다.
+- 새컬럼이름
+['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+
+2. 총인구수, 세대수,남자_인구수,여자_인구수의 합계를 출력하고
+총인구수 순으로 행들을 내림정렬한다.
+
+
+import pandas as pd
+
+# CSV 파일을 읽어 들여 frame에 저장후 정제  
+#데이터 품질 향상
+#데이터 전처리(열선택 -> 행과 행내용 필터링 -> 자료형 변환)
+frame = pd.read_csv("population_2020.csv", encoding="utf-8")    
+#1, 2, 4, 5 열의 ','와 공백문자를 제거 후 정수 형변환
+
+#컬럼이름이 한글이고 조금 복잡 ->  컬럼이름 간소화 정제 loc[] 산출
+#컬럼이름 간소화 정제
+#원컬럼이름 : "행정구역","2020년02월_총인구수","2020년02월_세대수","2020년02월_세대당 인구","2020년02월_남자 인구수","2020년02월_여자 인구수","2020년02월_남여 비율"
+#새컬럼이름
+frame.columns=['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+frame.columns
+#방법1
+#frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']] 
+frame.loc[:,'총인구수']=frame.loc[:,'총인구수'].str.replace(',', '').replace(' ', '').astype('int64')
+frame.loc[:,'세대수']=frame.loc[:,'세대수'].str.replace(',', '').replace(' ', '').astype('int64')
+frame.loc[:,'남자_인구수']=frame.loc[:,'남자_인구수'].str.replace(',', '').replace(' ', '').astype('int64')
+frame.loc[:,'여자_인구수']=frame.loc[:,'여자_인구수'].str.replace(',', '').replace(' ', '').astype('int64')
+frame2 = frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']]
+      
+# sum() 메소드로 행 방향으로 합계를 구함
+#sum = frame2.sum(axis=0) 
+#sum
+#sum([1,2]) 오류
+
+sum_ = frame2.sum(axis=0)
+sum([1,2])#3
+
+print('국내 전체 인구 통계')
+print('-' * 30)
+print('- 총 인구수 : %d명' % sum_.iloc[0])
+print('- 총 세대수 : %d명' % sum_.iloc[1])
+print('- 총 남자 인구수 : %d명' % sum_.iloc[2])
+print('- 총 여자 인구수 : %d명' % sum_.iloc[3])
+
+####################################################
+#총인구수 순으로 내림정렬
+rank_frame =  frame.sort_values(by=['총인구수'],ascending=False)
+#인덱스가 함께 비순서 정렬
+rank_frame 
+#기존 인덱스 제거, 기본 순서 인덱스
+rank_frame = rank_frame.reset_index(drop=True)
+rank_frame 
+
+--------------------------------
+#%% ver 3.0
+#코드 품질 향상
+#데이터 전처리(열선택 -> 행과 행내용 필터링 -> 자료형 변환)  
+#코드 반복 -> 함수화 -> apply() 적용
+
+import pandas as pd
+
+# CSV 파일을 읽어 들여 frame에 저장후 정제  
+#데이터 품질 향상
+#데이터 전처리(열선택 -> 행과 행내용 필터링 -> 자료형 변환)
+frame = pd.read_csv("population_2020.csv", encoding="utf-8")    
+#1, 2, 4, 5 열의 ','와 공백문자를 제거 후 정수 형변환
+frame.info()
+#컬럼이름이 한글이고 조금 복잡 ->  컬럼이름 간소화 정제 loc[] 산출
+#컬럼이름 간소화 정제
+#원컬럼이름 : "행정구역","2020년02월_총인구수","2020년02월_세대수","2020년02월_세대당 인구","2020년02월_남자 인구수","2020년02월_여자 인구수","2020년02월_남여 비율"
+#새컬럼이름
+frame.columns=['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+frame.columns
+
+#방법2
+#코드 품질 향상(리펙토링)
+frame2 = frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']]
+def f(col): #열
+    return col.str.replace(',', '').str.replace(' ', '').astype('int64')
+
+frame2 = frame2.apply(f,axis=0) 
+#frame원본에 frame2을 반영 수정
+frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']]  = \
+frame2.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']] 
+
+# sum() 메소드로 행 방향으로 합계를 구함
+#sum = frame2.sum(axis=0) 
+#sum
+#sum([1,2]) 오류
+
+sum_ = frame2.sum(axis=0)
+
+print('국내 전체 인구 통계')
+print('-' * 30)
+print('- 총 인구수 : %d명' % sum_.iloc[0])
+print('- 총 세대수 : %d명' % sum_.iloc[1])
+print('- 총 남자 인구수 : %d명' % sum_.iloc[2])
+print('- 총 여자 인구수 : %d명' % sum_.iloc[3])
+
+####################################################
+#총인구수 순으로 내림정렬
+rank_frame =  frame.sort_values(by=['총인구수'],ascending=False)
+#인덱스가 함께 비순서 정렬
+rank_frame 
+#기존 인덱스 제거, 기본 순서 인덱스
+rank_frame = rank_frame.reset_index(drop=True)
+rank_frame 
+
+-----------------------------------
+#플롯 한글 깨짐방지 
+plt.rc('font', family='Malgun Gothic') 
+import matplotlib
+matplotlib.rcParams['font.family']='Malgun Gothic'
+#글꼴크기
+matplotlib.rcParams['font.size']=16
+#음수부호 보이기(플롯 한글 깨짐방지 설정하면 음수부호 깨짐 )
+import matplotlib
+matplotlib.rcParams['axes.unicode_minus'] = False
+
+-----------------------------------------------------
+#%% 여러 개의 그래프를 범례(legend)와 함께 한 개의 창(플롯)으로 그리기
+x = ['안지영', '홍지수', '황예린']
+y1 = [90, 85, 88] #국어
+y2 = [85, 88, 90] #영어
+
+#플롯(axes)의 배경색 노랑 지정 
+plt.rcParams['axes.facecolor'] = 'y'
+#플롯 한글 깨짐방지 
+plt.rc('font', family='Malgun Gothic') 
+
+# plt.plot(x,y1,c='red',label='국어') #범례label
+# plt.plot(x,y2,c='green',label='영어')#범례label
+# plt.legend()
+plt.plot(x,y1,c='red') 
+plt.plot(x,y2,c='green')
+plt.legend(['국어','영어'])
+#plt.legend(['국어','영어'],loc='upper center')#범례label과 위치
+#fontdict : 폰트스타일 사전
+plt.title('세명 학생의 국어,영어 성적',fontdict={'size':18,'color':'green'})
+plt.xlabel('학생명')
+plt.ylabel('성적')
+---------------------------------------
+#%% 여러 개의 그래프를 범례(legend)와 함께 한 개의 플롯으로 그리기 2
+
+#플롯 한글 깨짐방지 
+plt.rc('font', family='Malgun Gothic') 
+#플롯(axes)의 배경색 노랑 지정 
+plt.rcParams['axes.facecolor'] = 'yellow'
+
+x = ['안지영', '홍지수', '황예린']
+y1 = [90, 85, 88] #국어
+y2 = [85, 88, 90] #영어
+y3 = [85, 97, 78] #수학
+# plt.plot(x,y1,c='red',label='국어') #범례label
+# plt.plot(x,y2,c='green',label='영어')#범례label
+# plt.legend()
+
+#linestyle=':'점선 ,-- 파선 - 실선
+#marker=d:다이아몬드
+#plt.plot(x,y1,c='#ff0000',linestyle='-', marker='o') 
+plt.plot(x,y1,c='red',linestyle='-', marker='o') 
+plt.plot(x,y2,c='green',linestyle=':', marker='x') 
+# style 값들을 하나의 문자열로 지정(c=red  marker='s' linestyle='--') 
+plt.plot(x,y1,'ro-')
+plt.plot(x,y2,'gx:')
+
+#plt.plot(x,y2,'gx--') #가능
+#plt.plot(x,y2,'rs--') 
+plt.plot(x,y3,c='magenta',linestyle=':',marker='s')
+plt.legend(['국어','영어','수학'])#범례label과 위치
+#fontdict : 폰트스타일 사전
+plt.title('세명 학생의 세 과목 성적',fontdict={'size':18,'color':'green'})
+plt.xlabel('학생명')
+plt.ylabel('성적')
+#축의 범위
+plt.ylim(0,100) #현 예제는 눈금값 20
+#축의 눈금값(tick) 지정
+plt.yticks(range(0,100,10))#눈금값 10
+
+#그리드 표시
+plt.grid(True)
+
+#축의 범위,눈금값 지정
+x = [1,2,3,4]
+y = [2 * i for i in x]
+plt.plot(x,y)
+
+# 축의 범위 지정하여 변경
+plt.xlim(0,10)
+plt.ylim(0,20)
+-------------------------------------------
+#플롯 한글 깨짐방지 
+plt.rc('font', family='Malgun Gothic') 
+labels = ['개구리', '돼지', '개', '고양이'] #요소
+sizes = [14.5, 30.5, 45, 10] # 요소값의 비율, 요소합이 100을 넘으면 자동 비율 계산
+colors = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral']
+plt.title("반려동물 Pie Chart")
+
+#startangle 90 :그래프의 시작 12시에서 반시계방향 요소 표시 개구리,돼지 이런순서
+#autopct='%1.1f%%' : 요소값 소수점이하 1자리수 
+plt.pie(sizes,labels=labels, colors=colors,
+        autopct='%1.1f%%',startangle=90) 
+-----------------------------------
+#%% 리스트를 DataFrame 변환후 plt 시각화
+
+import pandas as pd
+x = ['안지영', '홍지수', '황예린']
+y = [85, 88, 90]
+df = pd.DataFrame(data=y, index=x, columns=["성적"])
+
+#각각의 리스트를 열로 간주하여  열들을 사전으로 묶음
+data =  {"학생이름": x, "성적": y}
+#사전을 DataFrame 변환
+df = pd.DataFrame(data)
+
+#plot(x열,y열)
+plt.plot(df["학생이름"], df["성적"])
+#위치(x,y)에 str문자열 표시
+plt.text(x=0,y=df["성적"].mean(),str='성적평균=%d'%df["성적"].mean())
+
+plt.plot(df.index, df["성적"])
+#x가 생략되면 index가 x축
+plt.plot(df["성적"])
+
+#fontdict : 폰트스타일 사전
+plt.title('세명 학생의 영어 성적', 
+          fontdict={'size':18,
+                    'color':'green'})
+
+plt.xlabel("학생 이름")
+
+#파일저장
+plt.plot(df["학생이름"], df["성적"])
+plt.savefig('score.png')#위 코드와 함께 한꺼번에 실행
+---------------------------------
+- quiz
+1. iris 데이터셋의  sepal_width 컬럼을 라인플롯한다.
+
+2. iris 데이터셋의  sepal_width 컬럼을 산포플롯한다.
+
+3. iris 데이터셋의  꽃 품종이름 별로 sepal_width 컬럼의 평균을 바플롯한다.
+
+4. stock.png 참조하여 파이플롯한다.
+
+1. iris 데이터셋의  sepal_width 컬럼을 라인플롯한다.
+df=pd.read_csv('iris.csv')
+plt.plot(df.index, df['sepal_width'])
+plt.xlabel('행번호')
+plt.ylabel('꽃받침의 두께')
+2. iris 데이터셋의  sepal_width 컬럼을 산포플롯한다.
+plt.scatter(df.index, df['sepal_width'])
+plt.xlabel('행번호')
+plt.ylabel('꽃받침의 두께')
+3. iris 데이터셋의  꽃 품종이름 별로 sepal_width 컬럼의 평균을 바플롯한다.
+df.info()
+avg_s = df.groupby(by='species')['sepal_width'].mean()
+plt.bar(avg_s.index,avg_s)
+#sepal_width와 species 어느정도 연관성 엿보인다.(인사이팅)
+4. stock.png 참조하여 파이플롯한다.
+sizes=[50,20,10,10,10]
+colors=['yellow','yellowgreen','pink','skyblue','red']
+explode=(0,0.1,0,0,0)
+labels=['삼성전자','현대차','포스코','네이버','카카오',]
+plt.pie(sizes,colors=colors,explode=explode,labels=labels,autopct='%1.1f%%',
+        shadow=True,startangle=90)
+plt.savefig('stock.png')
+------------------------------
+누적비율 막대그래프
+data = {
+    "도시": ["서울", "서울", "서울", "부산", "부산", "부산", "인천", "인천"],
+    "연도": ["2015", "2010", "2005", "2015", "2010", "2005", "2015", "2010"],
+    "인구": [9904312, 9631482, 9762546, 3448737, 3393191, 3512547, 2890451, 263203],
+    "지역": ["수도권", "수도권", "수도권", "경상권", "경상권", "경상권", "수도권", "수도권"]
+}
+df = pd.DataFrame(data)
+pt = df.pivot_table( index='도시', columns='연도', 
+               values='인구',fill_value=9762540,
+               )
+
+#누적비율 막대그래프
+pt.plot.bar(stacked=True)
+
+--------------------------------------
+- quiz
+1. 전체 총인구수,총세대수,남자총인구수,여자총인구수 출력한다. 
+2. 서울,부산, 대구, 인천, 광주, 대전지역의 총인구수와 세대수를 막대플롯한다. 
+
+#%% 인구 EDA ver 4.0
+#시각화
+#서울,부산, 대구, 인천, 광주, 대전지역의 총인구수와 세대수를 막대플롯한다. 
+import pandas as pd
+
+# CSV 파일을 읽어 들여 frame에 저장후 정제  
+#데이터 품질 향상
+#데이터 전처리(열선택 -> 행과 행내용 필터링 -> 자료형 변환)
+frame = pd.read_csv("population_2020.csv", encoding="utf-8")    
+#1, 2, 4, 5 열의 ','와 공백문자를 제거 후 정수 형변환
+frame.info()
+#컬럼이름이 한글이고 조금 복잡 ->  컬럼이름 간소화 정제 loc[] 산출
+#컬럼이름 간소화 정제
+#원컬럼이름 : "행정구역","2020년02월_총인구수","2020년02월_세대수","2020년02월_세대당 인구","2020년02월_남자 인구수","2020년02월_여자 인구수","2020년02월_남여 비율"
+#새컬럼이름
+frame.columns=['지역', '총인구수', '세대수', '세대당_인구', '남자_인구수', '여자_인구수', '남여_비율']
+frame.columns
+
+#방법2
+#코드 품질 향상(리펙토링)
+frame2 = frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']]
+def f(col): #열
+    return col.str.replace(',', '').str.replace(' ', '').astype('int64')
+
+frame2 = frame2.apply(f,axis=0) 
+#frame원본에 frame2을 반영 수정
+frame.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']]  = \
+frame2.loc[:, ['총인구수', '세대수', '남자_인구수', '여자_인구수']] 
+
+#방법3 
+#frame2가이니라 frame원본에 대해서 직접 전처리,집계 정렬 가능
+
+# sum() 메소드로 행 방향으로 합계를 구함
+#sum = frame2.sum(axis=0) 
+#sum
+#sum([1,2]) 오류
+
+sum_ = frame2.sum(axis=0)
+
+print('국내 전체 인구 통계')
+print('-' * 30)
+print('- 총 인구수 : %d명' % sum_.iloc[0])
+print('- 총 세대수 : %d명' % sum_.iloc[1])
+print('- 총 남자 인구수 : %d명' % sum_.iloc[2])
+print('- 총 여자 인구수 : %d명' % sum_.iloc[3])
+
+####################################################
+#총인구수 순으로 내림정렬
+rank_frame =  frame.sort_values(by=['총인구수'],ascending=False)
+#인덱스가 함께 비순서 정렬
+rank_frame 
+#기존 인덱스 제거, 기본 순서 인덱스
+rank_frame = rank_frame.reset_index(drop=True)
+rank_frame 
+
+####################################################
+from matplotlib import rc
+rc('font', family='Malgun Gothic')
+
+#'서울', '부산', '대구', '인천', '광주', '대전' 행의 총인구수
+x1 = frame.iloc[:6, 1]
+
+#'서울', '부산', '대구', '인천', '광주', '대전' 행의 세대수
+x2 = frame.iloc[:6, 2]
+#x1,x2의 리스트 추출
+x1_lst = x1.values.tolist() # x1 = x1.values 가능
+x2_lst = x2.values.tolist() #x2 = x2.values 가능
+
+index = ['서울', '부산', '대구', '인천', '광주', '대전']
+df = pd.DataFrame({'총인구수':x1_lst, '세대수':x2_lst}, index=index)
+#1e7 지수 표기법
+df.plot(kind='bar',rot=0) # rot=0 :x레이블을 세로가 아닌  가로로 0도로 표시
+plt.ticklabel_format(style = 'plain')
+df.plot(kind='bar',rot=0 ,ax=plt.gca()) #gca() : 현재 Axes 객체 리턴, gcf():현재 figure 객체 리턴
+
+
+
+
+
+
+

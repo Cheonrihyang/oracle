@@ -1,0 +1,157 @@
+모든 연도값들을 하위연도 두자리로 코드화 
+Pclass 객실등급 Fare :탑승료(운임) Sex 성별 male, female Survived 생존여부 0,1
+
+평균 탑승료을 출력한다
+
+성별 생존자와 사망자수를 출력한다
+
+객실등급별 생존자와 사망자수를 출력한다
+
+'Fare_Range' 열을 추가후 Fare_Range 열을 다음조건으로 값을 수정한다 
+-조건
+Fare<=7.91 이면 1
+Fare>7.91 이고 Fare<=14.454 이면 2
+Fare>14.454이고Fare<=31 이면 3
+Fare>31이고 Fare<=513 이면 4
+
+Fare_Range별로 평균 생존율를 출력한다.
+
+Sex 성별 male, female을  category(범주형)으로 변환하여 코드화한다.
+
+titanic = pd.read_csv('titanic.csv')
+
+Pclass 객실등급 Fare :탑승료(운임) Sex 성별 male, female Survived 생존여부 0,1
+
+평균 탑승료을 출력한다
+titanic['Fare'].mean()
+
+성별 생존자와 사망자수를 출력한다
+#성별 승객개수 
+titanic.groupby('Sex').count()['Survived'] 
+#성능 효율적 
+titanic.groupby('Sex')['Survived'].count() 
+
+#성별 생존자와 사망자수
+titanic.groupby(['Sex','Survived'])['Survived'].count() 
+
+#성별 생존자와 사망자수
+titanic[['Sex','Survived']].value_counts() 
+
+
+객실등급별 생존자와 사망자수를 출력한다
+titanic[['Pclass','Survived']].value_counts() 
+#비율
+titanic[['Pclass','Survived']].value_counts(normalize=True) 
+
+'Fare_Range' 열을 추가후 Fare_Range 열을 
+다음조건으로 값을 수정한다 
+
+#Fare_Range 열을 추가
+titanic['Fare_Range']=0
+
+-조건
+Fare<=7.91 이면 1
+Fare>7.91 이고 Fare<=14.454 이면 2
+Fare>14.454이고Fare<=31 이면 3
+Fare>31이고 Fare<=513 이면 4
+#4개 범위영역으로 분할후 영역마다 식별번호 지정
+#titanic.loc[행 인덱스 조건식,열명 ]=식별번호
+titanic.loc[titanic['Fare']<=7.91,'Fare_Range']=1
+titanic.loc[(titanic['Fare']>7.91)&(titanic['Fare']<=14.454),
+            'Fare_Range']=2
+titanic.loc[(titanic['Fare']>14.454)&(titanic['Fare']<=31),
+            'Fare_Range']=3
+titanic.loc[(titanic['Fare']>31)&(titanic['Fare']<=513),
+            'Fare_Range']=4
+
+Fare_Range별로 평균 생존율를 출력한다.
+#Survived 0들은 더해도 0 결국 생존인 1값들의 합 
+titanic.groupby(['Fare_Range'])['Survived'].sum()
+titanic.groupby(['Fare_Range'])['Survived'].mean()
+
+Sex 성별 male, female을  category(범주형)으로 변환하여 코드화한다.
+titanic["Sex"] = titanic["Sex"].astype("category")
+titanic["Sex"].cat.categories=range(titanic['Sex'].unique().shape[0])
+
+-------------------------------------
+* apply()
+df = pd.DataFrame([[1,2,3],[4,5,6]],
+                  columns=['A','B','C'])
+------------------------------------------
+#고객 테이블(사전{컬럼:[]})
+df_left = pd.DataFrame({
+    '고객번호': [1001, 1002, 1003, 1004, 1005, 1006, 1007],
+    '이름': ['둘리', '도우너', '또치', '길동', '희동', '마이콜', '영희']
+})
+#주문테이블(사전{컬럼:[]})
+df_right = pd.DataFrame({
+    '고객번호': [1001, 1001, 1005, 1006, 1008, 1001],
+    '금액': [10000, 20000, 15000, 5000, 100000, 30000]
+})
+-----------------------------------------------
+#정규직(리스트[{}])
+df1 = pd.DataFrame([{'name': 'John',  'job': "teacher"}
+        , {'name': 'Candy', 'job': "student"}
+        , {'name': 'Fred',  'job': "developer"}
+
+    ])
+
+#비정규직(리스트[{}])
+df2 = pd.DataFrame([
+        {'name': 'Ed',  'job': "engineer"}
+        , {'name': 'Jack',  'job': "farmer"}
+        , {'name': 'James', 'job': "student1"}
+    ])
+
+---------------------------------------------------------------
+- quiz
+df과df2를 상하로 합친 후 학생별 두 과목 두 과목점수 평균을 출력한다.(apply 사용)
+
+df=pd.DataFrame(
+    {'국어':[1,2,3]
+    ,'영어':[4,5,6]    
+    })
+df2=pd.DataFrame(
+    {'국어':[1,2,3]
+    ,'영어':[4,5,6]    
+    }
+
+df = pd.concat([df,df2],axis=0,ignore_index=True)
+#열 방향(행별로 평균)
+#두 과목점수 평균
+#df.mean(axis=1)
+def avg(x):
+    return x.mean()
+#df의 각 행이 avg()의 x에 인자로 전달
+df.apply(avg,axis=1)
+
+--------------------------------------
+- quiz
+총인구수, 세대수,남자_인구수,여자_인구수 4개열의(열별) 합계를 출력
+단 특정 열의 ','와 공백문자를 제거
+
+import pandas as pd
+# CSV 파일을 읽어 들여 frame에 저장후 정제      
+frame = pd.read_csv("population_2020.csv", encoding="utf-8")
+
+#1, 2, 4, 5 열의 ','와 공백문자를 제거 후 정수 형변환
+#컬럼이름이 한글이고 조금 복잡해서  .iloc의 정수인덱스방식을 사용 
+#원컬럼이름 : "행정구역","2020년02월_총인구수","2020년02월_세대수","2020년02월_세대당 인구","2020년02월_남자 인구수","2020년02월_여자 인구수","2020년02월_남여 비율"
+frame.iloc[:,1]=frame.iloc[:,1].str.replace(',', '').replace(' ', '').astype('int64')
+frame.iloc[:,2]=frame.iloc[:,2].str.replace(',', '').replace(' ', '').astype('int64')
+frame.iloc[:,4]=frame.iloc[:,4].str.replace(',', '').replace(' ', '').astype('int64')
+frame.iloc[:,5]=frame.iloc[:,5].str.replace(',', '').replace(' ', '').astype('int64')
+#1, 2, 4, 5 열 추출   
+frame2 = frame.iloc[:, [1,2,4,5]]
+
+# sum() 함수로 행 방향으로 합계를 구함
+sum = frame2.sum(axis=0)
+
+
+print('국내 전체 인구 통계')
+print('-' * 30)
+print('- 총 인구수 : %d명' % sum.iloc[0])
+print('- 총 세대수 : %d명' % sum.iloc[1])
+print('- 총 남자 인구수 : %d명' % sum.iloc[2])
+print('- 총 여자 인구수 : %d명' % sum.iloc[3])
+

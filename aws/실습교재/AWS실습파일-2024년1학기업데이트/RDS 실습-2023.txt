@@ -1,0 +1,63 @@
+[mySQL RDS  인스턴스 작성]
+
+1.aws 콘솔로 접속후 RDS를 검색합니다.
+2.RDS를 클릭하고 Amazon RDS 대시보드를 클릭한후 화면상단에 데이터베이스 생성 단추(주황색)를 클릭합니다.
+3.데이터베이스 생성화면에서 표준생성이 선택되어 있는지를 확인하고 엔진유형에서 MYSQL을 선택하고 MySQL Community이 선택 되어 있는지를 확인합니다.
+4.템플릿 에서 "프리티어"를 선택합니다.
+5.설정섹션의 DB 인스턴스 식별자는 mySQLInstance로 입력합니다
+6.자격증명 설정을 확장하고 마스터 사용자 이름이 admin으로 표시되는가를 확인하고 마스터 암호와 암호확인 입력상자에 Pa$$w0rd를 입력합니다 
+7.스토리지 섹션의 할당된 스토리지크기는 20기가로 입력합니다. 연결섹션의 퍼블릭 액세스 "예" 선택
+8.화면스크롤하여 추가구성을 확장하고 반드시 데이터베이스 옵션에서 초기데이터베이스 이름은 "testdb"로 입력
+8.나머지는 기본값으로 두고 화면하단의 데이터베이스 생성 단추(주황색)를 클릭합니다. 
+9.화면 상단 알림창에서 데이터베이스 mysqlinstance 생성이 표시되고 시작하는데 몇분이 소요된다는 알림이 표시 됩니다.완전히 생성하는데 약 10여분정도가 소요됩니다.
+10.RDS DB인스턴스가 작성되었으면 testdb를 선택하고 인스턴스의 세부정보를 확인 할 수 있습니다.연결&보안 탭의 엔드포인트 부분에 mysqlinstance.cgqekqmnp8ci.ap-northeast-2.rds.amazonaws.com 와 포트번호 3306처럼 db에 접근할 수 있는 주소가 표시되어있습니다.
+필요시 이 정보를 이용하여 DB에 접속합니다. 
+
+RDS 인스턴스가 성공적으로 작성되어도 동일VPC 보안그룹 설정안에서만 연결이 허용되어 있고 외부연결에 대해 보안그룹에서 접속이 기본적으로 차단되어 있기때문에 엔트포인트 접속정보로 연결할 수 가 없습니다
+외부에서 해당인스턴스에 접속을 하려면  RDS DB인스턴스용 보안그룹을 만들어야 합니다.  
+
+11. aws 콘솔화면에서 EC2를 클릭합니다.좌측 메뉴에서 네트워크 및 보안부분을 확장하고  보안그룹을 클릭합니다.
+12.우측 상단에 보안그룹 생성 단추를 클릭합니다.보안그룹 생성화면에서 보안그룹이름과 설명에 mySQLInstance SG을 입력합니다.
+보안그룹이 적용될 VPC는 기본값을 사용합니다.
+13.인바운드 규칙에서 규칙추가 단추를 클릭하고 화살표를 눌러 MYSQL/Aurora를 선택하면 자동으로 3306포트번호가 설정됩니다
+옆의 소스부분에서 Anywhere-IPv4를 선택합니다. (실무에서는 내IP를 선택하거나 사용자지정을 선택하여 특정IP대역을 설정합니다.)
+14.화면하단의 보안그룹생성 단추(주황색)를 클릭하여 mySQLInstance SG 보안그룹이 작성된것을 확인합니다.
+15.확인이 되면 RDS인스턴스 목록으로 이동하여 DB인스턴스 목록에서 mysqlinstance 인스턴스를 선택한 후  상단의 수정단추를 클릭하고  연결섹션에서 네트워크유형의 화살표를 클릭하여 방금 작성되어 나타나는 "mySQLInstance SG"을 선택하고  기본 보안그룹은 삭제합니다 화면 하단 추가 구성섹션의  퍼블릭 액세스 가능이 선택되어 있는지 확인합니다.
+확인 후 화면 하단의 계속 단추(주황색)를 클릭합니다.
+수정 사항 요약표시에서 "보안 그룹이  mySQLInstance SG"로 표시된것을 확인하고 수정예약에서 즉시 적용을선택후  하단의 DB 인스턴스 수정 단추를 클릭하여  RDS DB인스턴스의 설정을 변경합니다.
+잠시후 RDS DB 인스턴스의 목록을 보면 mysqlinstance의 VPC보안그룹에 default가 삭제되고 mySQLInstance SG 인스턴스가 "활성" 표시된것이 확인됩니다.이제 외부에서 mySQL로 접속이 가능해집니다. 
+
+2.[RDS DB인스턴스 사용]
+MySQL Workbench GUI도구를 사용하여 DB가 실제 생성되었는지 확인합니다.
+
+* MySQL Workbench GUI도구 download 링크(회원가입후 다운로드)
+https://dev.mysql.com/downloads/file/?id=519997
+
+1.설치 전 VC_redist.x64.exe  설치후  MySQL Workbench GUI도구 설치한다
+설치완료 후  실행하여 표시되면 MySQL Connection 옆의 + 기호를 클릭하여 아래정보 이용 새로운 MySQL 연결을 생성합니다
+
+Connection Name:RDS
+Connection method:기본값 
+Hostname:endpoint 주소 : mysqlinstance.cqyhhwvbtocq.ap-northeast-2.rds.amazonaws.com
+Port:기본값
+Username:admin
+Password의 store in valut 클릭해서 암호압력상자표시되면 Pa$$word 입력하고 OK클릭
+2.연결시 버전차이때문에 경고상자가 나타나도 무시하고 continue anyway를 클릭한다
+3.접속후 화면 좌측하단의 schemas 탭을 클릭하면  인스턴스 생성시 만들어진 TESTDB가 표시되고 이 TESTDB아래 Tables를 선택하여 우측마우스버튼을 클릭하여 create table..명령을 선택합니다.
+4.아래 정보대로 새테이블을 만듭니다.
+테이블이름 sample table
+컬럼3개 아래 정보이용 추가후 apply 단추 클릭
+Id  datatype:int PK,NN,AI 체크
+Name datatype:varchar(45)
+Address datatype:varchar(45)
+
+5.테이블을 생성하는 SQL구문이 표시되면 apply단추를 클릭후 finish단추를 클릭합니다.
+6.mySQL Workbench 죄측을 보면 sampetable을 확인할 수 있고 이테이블을 선택후 우측 마우스 단추를 클릭하여 select row-limit 1000을 클릭합니다.
+7.sampltable의 데이터가 표시되야하는데 테이블만 생성되었고 데이터 입력이 없으므로 이름과,주소 컬럼에 들어갈 Excel의 셀입력하는 것처럼 임의의 데이터를 입력해보고 적용단추를 클릭하여 데이터삽입이 잘되는가를 획인해봅니다.
+8.이런식으로 GUI도구를 이용하여 RDS인스턴스의 내용을 확인하거나 데이터 삽입이 가능하다는 것을 실습했습니다.
+
+
+
+
+
+

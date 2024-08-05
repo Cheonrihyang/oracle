@@ -1,0 +1,138 @@
+python에 기본적으로 설치되는 xml.etree.ElementTree 모듈을 이용
+
+<?xml version="1.0" encoding="UTF-8"?>
+  <users>
+    <user level="1">
+      <id>001</id>
+      <name>홍길동</name>
+    </user>
+    <user  level="2">
+      <id>002</id>
+      <name>이순신</name>
+    </user>
+  </users>
+
+-------------------------
+* sqlite3
+SQL 쿼리 언어로 접근 가능
+CREATE TABLE IF NOT EXISTS customer 
+(id INTEGER PRIMARY KEY autoincrement , 
+name TEXT,  
+category INTEGER,
+region TEXT);
+------------------------------------
+- quiz
+일자별 기온의 일교차(최고기온 - 최저기온) 출력
+출력형식 2019-10-01 11.7
+
+f = open('month_temp.csv', 'r', encoding='utf-8')
+#csv.reader() 함수는 Iterator 타입인 reader 객체를 리턴
+rdr = csv.reader(f)
+next(rdr)#헤더 건너뛰기
+# 각 라인은 컬럼들을 나열한 리스트(list)
+for line in rdr:
+    diff=float(line[4]) - float(line[3]) #실수 변환후 일교차
+    print('%s %.1f'%(line[1],diff))
+f.close()
+----------------------------
+#경주시 신대원약국의 주소 검색
+import csv
+f = open('pharm_2019.csv', 'r', encoding='utf-8')
+#csv.reader() 함수는 Iterator 타입인 reader 객체를 리턴
+rdr = csv.reader(f)
+next(rdr)#헤더 건너뛰기
+for line in rdr:
+    if line[1]=='경주시' and line[0]=='신대원약국':
+        print(line[0],line[1],line[2],sep='/')
+f.close()
+----------------------------------
+#용인시 수지구 로얄스포츠 건물에 입점된 약국 검색
+f = open('pharm_2019.csv', 'r', encoding='utf-8')
+rdr = csv.reader(f)
+next(rdr)#헤더 건너뛰기
+for line in rdr:
+   if ('용인시 수지구' in line[2])  and ('로얄스포츠' in line[2]):
+        print(line[0],line[1],line[2],sep='/')
+f.close()
+
+#경상북도 2010년 1년간 개설 약국 목록 출력
+- 출력형식
+번호,약국명,지역,주소,경도,위도
+2010년 1년간
+20100101 ~  20101231
+
+f = open('pharm_2019.csv', 'r', encoding='utf-8')
+rdr = csv.reader(f)
+header= next(rdr)#헤더 적출
+#출력제목줄
+print('번호',header[0],header[1],header[2],
+      header[4],header[5],sep=',')
+number=1 #줄번호
+
+for line in rdr: 
+    #경상북도 2010년 1년간
+    if('경상북도' in line[2]) and (int(line[3]) >=20100101 and int(line[3]) <= 20101231):
+           print(number,'.',sep='',end='')#줄번호와 .간 빈칸 제거와 개행방지)
+           print(line[0],line[1],line[2],line[4],line[5],sep='/')
+           number+=1	
+f.close()
+
+-------------------------------------
+#최근 용인시 5년 이내 개설 약국 수
+from datetime import datetime
+from datetime import timedelta
+날짜datetime와  시차timedelta 활용
+윤년미고려
+
+f = open('pharm_2019.csv', 'r', encoding='utf-8')
+#csv.reader() 함수는 Iterator 타입인 reader 객체를 리턴
+rdr = csv.reader(f)
+next(rdr)#헤더 건너뛰기
+
+from datetime import datetime
+now=datetime.now() 
+#5년전 날짜datetime객체
+from datetime import timedelta
+t = timedelta(days=-365*5) # 년도미지원 윤년미고려
+five_year  = now + t
+#from dateutil.relativedelta import relativedelta
+#five_year  = now + relativedelta(years=-5) #년도지원
+#5년전 날짜문자열
+five_year = datetime.strftime(five_year, '%Y%m%d') #'20160215'
+
+count = 0 #용인시 약국 수
+recent = 0 # 용인시 5년 이내 개설 약국 수
+for line in rdr:
+    if ('용인시' in line[2]):
+        count+=1
+	    #if (line[3] > five_year_str): #최근 5년
+        if (int(line[3]) > int(five_year)):
+            recent+=1            
+            
+print('용인시 약국 수 : %d개'%count) 
+print('최근 용인시 5년 이내 개설 약국 수 : %d개'%recent)
+f.close() 
+-------------------------------
+웹 크롤링
+웹페이지 탐색 수집 분류 저장
+
+응답결과가 바이너리(이미지)
+
+resp = requests.get("https://blogimgs.pstatic.net/nblog/mylog/post/og_default_image_160610.png")
+#response.content이미지 데이터를 가지고 파일에다(f) 데이터를 씀(write)
+with open('naver_blog_logo.png', 'wb') as f:
+    f.write(resp.content)
+
+req.urlretrieve('https://blogimgs.pstatic.net/nblog/mylog/post/og_default_image_160610.png',
+                'naver_blog_logo2.png')
+
+
+
+
+
+
+
+
+
+
+

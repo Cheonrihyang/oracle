@@ -1,0 +1,193 @@
+고계(고차 = high order)함수
+함수가 인자와 리턴값으로 사용 가능
+
+#문자열을 출력값(소문자)으로 생성시키는 함수를 인자로 전달
+def toLowerText(s):
+    return s.lower()
+
+#출력값(소문자) 출력
+def showText(f):# f는 함수변수
+      print(f("ABCD"))
+
+showText( toLowerText)
+----------------------------------------------
+-quiz
+1. 콤마가 포함된 문자열 숫자를 입력받아 정수로 변환하는 프로그램을 작성해보자.
+단 람다 기법 적용
+"1,234,567"
+1234567
+
+2. 시급을 10000으로 가정하고 시수를 입력받어 급여를 산출하는 프로그램을 작성해보자.
+(소득세 10% 제외)
+단 람다 기법 적용
+
+시수 : 5
+급여=45000.0
+
+3. 4개의 숫자를 리스트에 저장하고 그 숫자의 2배수 리스트를 출력하는 프로그램을 작성해보자. 
+단 람다, 리스트내포, 고계함수 기법을 적용하고 고계함수 선언부는 def map(함수,리스트)이다.
+[1, 2, 3, 4]
+
+--------------------------
+MR
+
+reduce() 집계요약
+- quiz
+3!(팩토리얼) 산출하는 프로그램을 reduce 함수를 사용하여 작성해보자.
+팩토리얼은 해당 숫자보다 작거나 같은 모든  정수의 곱으로 
+자기를 포함해서 하나씩 작은 수를 곱해가면서 1까지 곱한다.(3! = 3 * 2 * 1)
+
+---------------------------------
+filter()
+[1, 2, 3, 4, 5, 6] 에서 짝수 값만 리턴하는 함수
+
+12345
+-----------------------------
+- quiz
+1. '매수종목1.txt' 파일을 생성한 후 다음과 같이 종목코드를 파일에 써보자.
+005930
+005380
+035420
+
+f = open("매수종목1.txt", mode="w", encoding="utf-8")
+f.write("005930\n")
+f.write("005380\n")
+f.write("035420")
+f.close()
+
+
+2. 생성한 '매수종목1.txt' 파일을 읽은 후 종목코드를 리스트에 저장해보자.
+
+f = open("매수종목1.txt", encoding="utf-8")
+lines = f.readlines()   # python list
+help(open)
+codes = []
+for line in lines:
+    code = line.strip()  #'\n'
+    codes.append(code)
+
+print(codes)
+f.close()
+
+f = open("매수종목1.txt", encoding="utf-8")
+lines = f.readlines()   # python list
+
+codes = [line.strip() 
+         for line in lines]
+
+print(codes)
+f.close()
+
+
+
+3. '매수종목2.txt' 파일을 생성한 후 다음과 같이 종목코드와 종목명을 파일에 써보자.
+단 with문 사용
+005930 삼성전자
+005380 현대차
+035420 NAVER
+
+with open("매수종목2.txt", mode="w", encoding="utf-8") as f:
+    f.write("005930 삼성전자\n")
+    f.write("005380 현대차\n")
+    f.write("035420 NAVER\n")
+    
+    
+4. 생성한 '매수종목2.txt' 파일을 읽은 후 종목코드와 종목명을 딕셔너리로 저장해보자.
+종목코드 key로 종목명을 value로 저장한다.
+
+f = open("매수종목2.txt", encoding="utf-8")
+lines = f.readlines()
+
+data = {}
+for line in lines:
+    line = line.strip()     # '\n' 제거
+    #종목코드 key로 종목명을 value 빈칸분리
+    k, v = line.split()
+    #print(k, v)
+    data[k] = v
+
+print(data)
+f.close()
+
+5. test_input.txt 파일에서 파일 객체의 readlines()를 이용하여 모든 라인을 읽은 후에
+reversed()를 이용하여 각 라인을 역순으로 정렬한 후에 다시 test_output.txt 파일에 저장하는 프로그램을 작성해보자.
+
+test_input.txt 
+가나다
+라마바
+
+test_output.txt
+라마바
+가나다
+
+f = open('test_input.txt', encoding='utf-8')
+lines = f.readlines()  # 모든 라인을 읽음
+f.close()
+
+#라인을 역순으로 정렬
+lines = reversed(lines)
+
+f = open('test_output.txt','w',encoding='utf-8')  
+for line in lines:    
+    f.write(line)
+    f.write('\n')  # 줄바꿈 문자 삽입
+f.close()
+
+-----------------------------
+#%% 보안성의 향상
+#4번 재입력 기회
+#3번째는 보안문자 요구
+#4번째는 로봇으로 간주 프로그램 강제 종료  
+#단 올바른 값(정수 문자열)입력시 반복 종료 
+import sys
+isHuman = True #입력자 사람여부
+sc='1234'#보안문자
+for i in range(4):
+    try:
+        if isHuman:
+            a = int(input("정수:"))
+            print(a)
+        else:
+            a = int(input("정수:"))
+        #정수 입력하더라도 
+        #잘못된 보안문자 입력시 프로그램 종료
+            b = input("보안문자:")
+            if(b != sc):
+                print('너 로봇')
+                sys.exit()#프로그램 종료  
+            
+    except ValueError as e:
+        print(type(e))
+        print(e)
+        if(i==2):#세번잘못입력
+            isHuman = False
+            print("보안문자",sc)
+        if(i==3):#마지막 네번잘못입력
+            print('너 로봇')
+            sys.exit()#프로그램 종료   
+        continue;
+    else:#예외미발생시(정수 입력)
+        break
+    
+print('Good')
+---------------------------------
+- quiz
+
+1. 문자열 PER (Price to Earning Ratio) 값을 실수로 변환할 때 에러가 발생한다.
+예외처리를 통해 에러가 발생하는 PER은 0으로 출력하라.
+
+per = ["10.31", "", "8.00"]
+
+for i in per:
+    print(float(i))
+
+2. 아래의 코드에 대해서 예외처리를 사용하고 try, except, else, finally에 적당한 코드를 
+작성해보자. else와 finally는 임의의 적당한 문구를 print하면 된다.
+
+per = ["10.31", "", "8.00"]
+
+for i in per:
+    print(float(per))
+
+
+

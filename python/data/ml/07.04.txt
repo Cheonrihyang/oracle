@@ -1,0 +1,126 @@
+Iterable 객체(Iterable Object)
+
+list,set, Dictionary와 같은 컬렉션 문자열과 같은 문자 Sequence등을
+for 문을 써서 반복해서 하나씩 데이타를 처리
+-> 컬렉션,Sequence을 반복가능한 자료형 
+
+iter(컬렉션/Sequence):Iterable 객체의 iterator를 리턴 
+next(iterator)-> 다음 요소를 가져옴
+
+for가 iterator생성과 next()로  반복해서 하나씩 데이타를 
+반복변수에 대입
+----------------------------
+- quiz
+
+1. 리스트에 동물 이름 저장돼 있다.
+
+리스트 = ['dog', 'cat', 'parrot']
+for문을 사용해서 동물 이름의 첫 글자만 출력하라.
+
+d
+c
+p
+
+리스트 = ['dog', 'cat', 'parrot']
+for 이름 in 리스트:
+  print(이름[0])
+
+2. 리스트에서 20 보다 작은 3의 배수를 출력하라
+
+리스트 = [13, 21, 12, 14, 30, 18]
+12
+18
+
+리스트 = [13, 21, 12, 14, 30, 18]
+for 변수 in 리스트:
+  if (변수 < 20) and (변수 % 3 == 0):
+    print(변수)
+
+3. 생년월일(19800123)을 입력받아서 해당년도가 윤년인지 판단하는  코드를 작성한다. 
+년도/4 해서 나누어 떨어지면 일단 윤년
+위의 해당하는 년도중에 년도/100이 또 나누어 떨어지면 평년
+위에 해당하면서 년도/400이면 윤년 
+
+-결과화면
+생년월일: 1980123
+1980 윤년
+
+bstring =input("생년월일: ")
+#1. 분리 
+year = int(bstring[:4]) # 년로 해석
+res='평년'
+if (year % 4 ==0 and year % 100 != 0) or (year % 400  ==0):
+    res='윤년'  
+print(year,res)  
+
+4. 월드컵은 4년에 한 번 개최된다. range()를 사용하여 2002~2030년까지 중 월드컵이 개최되는 연도를 출력하라.
+
+2002
+2006
+2010
+2014
+2018
+2022
+2026
+2030
+
+for x in range(2002, 2031, 4) :
+    print (x)
+
+5. 리스트에 저장된 데이터를 아래와 같이 출력하라.
+apart = [ [101, 102], [201, 202], [301, 302] ]
+
+301 호
+302 호
+201 호
+202 호
+101 호
+102 호
+
+#이중for
+#행렬구조   
+apart = [ [101, 102], 
+          [201, 202],
+          [301, 302] ]	
+for row in apart[::-1]:#행별
+    for col in row: #열
+        print(col,'호')
+
+--------------------------------------------
+* 사전의 반복 
+date = ['09/05', '09/06', '09/07', '09/08', '09/09']
+close_price = [10500, 10300, 10100, 10800, 11000]
+mydict = dict(zip(date, close_price))
+for key in mydict.keys():
+    print(key)
+##반복변수의 기본은 키 
+for key in mydict:
+    print(key)
+
+for value in mydict.values():
+    print(value)
+    
+for key in mydict.keys():
+    print(key,mydict[key])
+   
+for key,vlaue in mydict.items():
+    print(key,vlaue)
+--------------------------------------------
+* 조건부 표현식(conditional expression)
+if score >= 60 else 가운데 기준으로 앞에 참값 뒤에 거짓값 리턴
+가독성 유리
+message = "success" if score >= 60 else "failure"
+
+--------------------------------------
+* 리스트 내포
+ 각 항목에 3을 곱한 결과 리스트
+a = [1,2,3,4]
+result = [num * 3 for num in a ]
+[표현식 for 항목 in 반복_가능_객체]
+-----------------------------------------------
+요소가 정수이고 짝수인 요소만 추출하여 출력
+a = (1,2,3,4,'A','B')
+
+
+
+

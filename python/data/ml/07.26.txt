@@ -1,0 +1,190 @@
+학습된 데이터 셋에만 과도하게 최적화되어(일종의 과적합) 
+다른 데이터로 테스트시 예측성능 저하
+-> 학습 데이터셋(행수 ,피처수)이 부족 -> 모든 데이터의 특성을 반영할수 없다(편향된 학습)
+->행수,피처수 증가
+훈련데이터 행수 추가시키면서 
+무의미한 피처수 줄인다(상관성이 아주 높은 피처(중복성피처)들 제거)
+피처수 줄이는대신에 정규화
+
+-----------------------------------
+
+import pandas as pd
+import statsmodels.api as sm
+		
+bostonDF = pd.DataFrame(boston.data, columns=boston.feature_names)
+bostonCDF  = sm.add_constant(bostonDF)
+
+model_boston = sm.OLS(boston.target, bostonCDF)
+result_boston = model_boston.fit()
+print(result_boston.summary())
+----------------------------
+사이킷런은 문자열값을 입력값으로 허용X
+문자열 피처는 레이블 인코딩해서 숫자형으로 변환
+
+문자열 피처 
++--범주(카테고리)형  피처는  숫자형으로 변환
++--텍스트형 피처는 불필요한 피처라고 판단되면 일반적으로 삭제
+범주(카테고리) 문자열= 식별명 = 레이블(Label)
+1. 레이블 인코딩(Label encoding)
+LabelEncoder : 문자(레이블) 정렬 순번 부여
+-----------------------------------------
+#%% 다중컬럼 인코딩 
+
+items=['TV','냉장고','전자렌지','컴퓨터','선풍기']#제품명
+grd=['A','C','B','B','A']#제품등급
+
+import pandas as pd
+df = pd.DataFrame({'grd':grd,'items':items})
+# le.fit(다중컬럼들) 오류
+# label column 별로 Label Encoder object 생성
+label_column = ['grd','items'] 
+label_encode_list = []
+label_encoder_list = []
+for column_index in label_column:
+    le = LabelEncoder()
+    le.fit(df[column_index])
+    le.transform(df[column_index])
+    label_encoder_list.append(le)
+    label_encode_list.append(le.transform(df[column_index])) #각 컬럼 별로 label encode 배열 저장
+
+#label_encode_list = [array([0, 2, 1, 1, 0]), array([0, 1, 3, 4, 2])]    
+y0=label_encode_list[0]
+label_encoder_list[0].inverse_transform(y0)
+
+------------------------
+원-핫 인코딩(One-Hot Encoding)
+https://wikidocs.net/37293
+
+숫자 순서 순번을 크기 순서 인식
+표현하고 싶은 단어의 인덱스에 1의 값을 부여
+다른 인덱스에는 0을 부여하는 벡터 표현 방식
+
+https://wikidocs.net/86971
+---------------------------------------
+make_column_transformer() ->ColumnTransformer 객체 생성
+컬럼들을 그룹핑해서 따로 인코더 설정
+# make_column_transformer(
+#     (인코더, [인코딩 대상 컬럼들]),
+#     (인코더, [인코딩 대상 컬럼들]),  
+#     remainder(나머지 컬럼들)='passthrough')
+
+----------------------------------------
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+items=['TV','냉장고','전자렌지','냉장고','전자렌지']#제품명
+grd=['A','C','B','B','A']#제품등급
+price=[10,20,20,20,10]
+
+df = pd.DataFrame({'grd':grd,'items':items,'price':price})
+df.info()
+from sklearn.compose import make_column_transformer
+
+transformer = make_column_transformer( 
+    (OneHotEncoder(), ['grd']),
+    remainder='passthrough')
+
+transformer.fit_transform(df)
+#인코딩된 컬럼명 확인
+transformer.get_feature_names()
+
+#DataFrame으로 구성
+#3개의 컬럼을 가지는 df가
+#7개 컬럼을 가지는 enc_df 변환
+pd.DataFrame(transformer.fit_transform(df),
+             columns=transformer.get_feature_names())
+
+---------------------------
+- quiz
+맨하탄의 주택정보를 이용한 임대료 예측 선형회귀모델을 구현 및 평가한다.
+rent 정보가 임대료이고 target이다.
+
+* 고려사항
+- id같은 식별자와 object 같은 비숫자열인 특성은 학습에서 제외한다.
+- train_test_split()을 적용한다.
+- 회귀계수를 큰 값 순으로 정렬하여 출력한다.
+
+맨하탄의 주택정보(특성)
+rental_id	rental ID
+rent	임대료 ($)
+bedrooms	침실수
+bathrooms	화장실수
+size_sqft	평수(feet)
+min_to_subway	지하철과의 거리 (minutes)
+floor	층수
+building_age_yrs	건물 연령
+no_fee	중계수수료 (0 for fee, 1 for no fee)
+has_roofdeck	옥상 (o for no, 1 for yes)
+has_washer_dryer	세탁기/건조기 (0/1)
+has_doorman	도어맨 (0/1)
+has_elevator	엘리베이터 (0/1)
+has_dishwasher	식기세척기 (0/1)
+has_patio	안마당(patio) (0/1)
+has_gym	헬스장(gym) (0/1)
+neighborhood	이웃 (ex: 한인타운)
+borough	 (ex: Manhattan)
+
+df = pd.read_csv("data/manhattan.csv")   
+
+----------------------------------
+#%%
+import pandas as pd
+df = pd.read_csv("data/manhattan.csv")
+#df.shape #(3539, 18)
+df.info()
+df.head()
+
+from sklearn.model_selection import train_test_split
+#독립변수 선별(id같은 식별자와 object 같은 비숫자열 제거)
+
+
+
+#object 열 제거
+#가능
+#remain_idx = df.columns[df.dtypes!=object]
+#x = df[remain_idx]
+#가능(axis=1 불필요 기본은 0)
+#x = df.drop(columns=['rental_id','rent','borough','neighborhood'])
+#가능(첫번째 매개변수명 labels)
+#x = df.drop(labels = ['rental_id','rent','borough','neighborhood'],axis=1)
+#가능(첫번째 매개변수명 labels 생략 )
+x = df.drop(['rental_id','rent','borough','neighborhood'],axis=1)
+
+x.shape #(3539, 14)
+y = df['rent']
+
+#train:test = 8:2 분할
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2,random_state=0)
+
+from sklearn.linear_model import LinearRegression
+lr = LinearRegression()
+lr.fit(x_train, y_train) 
+
+lr.intercept_
+lr.coef_
+
+#예측
+y_predict = lr.predict(x_test)
+
+#14개의 변수가 주택 임대료의 76%를 예측(설명)
+lr.score(x_test, y_test)
+
+from sklearn.metrics import r2_score
+r2_score(y_test,y_predict)
+
+#%%
+import numpy as np
+#np.sort(lr.coef_)[::-1] #lr.coef_ 는 array
+coef = pd.Series(data=np.round(lr.coef_,2),
+          index=x.columns)
+coef.sort_values(ascending=False)
+
+#%%
+#생성된 회귀모델(lr)은 좋은 임대료를 선택하기위하여 활용 가능
+#또 다른 새로운 데이터 
+apt = [[1, 1, 620, 16, 1, 98, 1, 0, 1, 0, 0, 1, 1, 0]]
+#예측
+apt_predict = lr.predict(apt)
+apt_predict[0]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

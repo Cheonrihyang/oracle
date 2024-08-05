@@ -1,0 +1,835 @@
+선형회귀 방식을 분류에 적용 
+선형회귀 방식기반에 시스모이드 함수를 이용해 분류하는 회귀 최적선(회귀분류선)
+ 오차 (실제값 과 예측값 (0 ~ 1 확률)의 차이)가 가장 작은 직선을 찾음 
+ (직선의 수식 (y = w * x + b, 모델)에서 w 와 b를 찾음 (학습))
+
+로지스틱함수(decision function)
+1/(1+e^-(ax+b)  x가 단위값마다 증가하면 
+자연상수(e)의 기울기(a, 회귀계수 )제곱 만큼 증가 
+
+값이 커질수록 1에, 값이 작아질수록 0에 수렴하는 함수
+일반적인 선형회귀문제로 접근가능
+
+1. 이진 분류
+≥0.5  1 분류(판별)
+<0.5  0 분류(판별)
+
+from sklearn.linear_model import LogisticRegression
+
+https://wikidocs.net/41256
+------------------------------------------
+Logistic 회귀와 피처 정규화  분류 정확도 성능 향상
+
+https://wikidocs.net/50093 
+
+
+직의 특징값(크기,모양,질감등)
+
+
+C값 (기본값 = 1) 알파(penalty)의 역수
+C 값이 작으면 Penalty 강해짐
+-> 회귀계수들이 점점0에 가까워지고 모델이 단순화되고 일반화된다
+-> 과대적합 해소
+작은 데이터 세트의 경우  'liblinear' 
+큰 데이터 세트의 경우 'sag' 및 'saga' 빠른다.
+----------------------------
+#'lbfgs'이 L2 지원
+params={'C':[0.1,1,10],
+        'penalty':['l1,l2'],
+        'solver':['saga','liblinear'],
+        'max_iter':[100,500]        
+        }
+----------------------------------------
+다항분류
+multi_class{'auto', 'ovr', 'multinomial'}, default='auto'
+multinomial
+레이블(클래스가) 많아질스록 분류확률 요구 
+softmax 함수가 다중 분류 모델에 사용되면 
+각 클래스의 확률을 반환하며 대상 클래스는 높은 확률을 갖는다.확률의 총 합 = 1
+softmax는 값들이 유사한경우 좀 더 큰 값을 좀 더 큰 확률값으로 변환
+----------------------------------
+#%% 다항(다중)로지스틱 회귀(다중클래스 회귀분류)
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+x_data = [
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+]
+
+#'A', 'B', 'C' 범주(카테고리,그룹,클래스)값이
+# 각각 0,1,2 
+y_data = [2, 2, 2, 1, 1, 2, 0, 0, 0, 1, 0, 2]
+
+labels = ['A', 'B', 'C']
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777, stratify=y_data)
+
+##########모델 생성
+
+model = LogisticRegression(multi_class='multinomial')
+
+##########모델 학습
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+
+##########모델 예측
+y_predict = model.predict(x_test)
+
+x_test = [
+    [4, 6]
+]
+
+y_predict = model.predict(x_test)
+print(labels[y_predict[0]]) #B
+--------------------------------------------------
+#자동차 평가 등급 분류 모델 학습
+https://wikidocs.net/42259
+
+0   buying        1728 non-null   object 구매가격 low, med, high, vhigh
+ 1   maint         1728 non-null   object 유지보수비용 low, med, high, vhigh	
+ 2   doors         1728 non-null   object 문의 개수 2, 3, 4, 5more
+ 3   persons       1728 non-null   object 좌석 수	2, 4, more
+ 4   lug_boot      1728 non-null   object 짐칸 크기	small, med, big	
+ 5   safety        1728 non-null   object 안전	low, med, high
+ 6   class values  1728 non-null   object 평가 등급
+unacc (수용불가), acc (수용가능), good (좋음), vgood (매우좋음)
+
+##########모델 예측
+
+x_test = [
+    ['vhigh', 'vhigh', '2', '2', 'small', 'low']
+]
+x_test = pd.DataFrame(x_test, columns=['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety'])
+x_test = transformer.transform(x_test)
+y_predict = model.predict(x_test)
+
+------------------------------
+Pipeline
+전처리의 각 단계, 모델링,학습 단계들을
+한번에 연결 처리할 수 있는 객체
+
+-------------------------
+- quiz
+LogisticRegression 기반의 최적의 분류 예측 모델을 구현한다.
+데이터셋은 자동차 평가 등급 데이터셋이고 GridSearchCV로 최적의 'C'와 'max_iter' 파라미터를 찾아본다.
+기본 LogisticRegression과 비교분석하여 과적합의 개선여부를 확인한다.
+단 Pipeline 미적용
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+
+##########데이터 로드
+
+df = pd.read_csv('https://raw.githubusercontent.com/khandelwalpranav05/Car-Evaluation/master/car.data')
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_data = df.drop(['class values'], axis=1)
+y_data = df['class values']
+
+# 피처와 타켓 인코딩
+transformer = make_column_transformer(
+    (OneHotEncoder(), ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety']),
+    remainder='passthrough')
+
+transformer.fit(x_data)
+x_data = transformer.transform(x_data)
+
+le = LabelEncoder()
+le.fit(y_data)
+y_data = le.transform(y_data)
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777, stratify=y_data)
+
+
+model = LogisticRegression()
+
+#param = {'C' : [0.1,1,10]} 
+#C=10 일때 max_iter 가 100 ConvergenceWarning: lbfgs failed to converge 
+#max_iter 를 증가 
+param = {'C' : [0.1,1,10],
+         'max_iter':[100,500]} 
+
+grid_model = GridSearchCV(estimator=model, param_grid=param,scoring='accuracy',cv=5)
+grid_model.fit(x_train,y_train)
+#{'C': 10, 'max_iter': 100}
+print(grid_model.best_params_)
+print(grid_model.best_score_)
+
+estimator=grid_model.best_estimator_
+y_predict=estimator.predict(x_test)
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test, y_predict))
+-------------------------
+결정트리(DecisionTree)
+https://wikidocs.net/43627
+
+노드=특성 =질문
+잘 분류하는 질문(특성=피처=피처의 조건식)을 찾아야 한다.
+질문의 조건식
+- 분기(분할=split)방식
+결정트리는 특성마다 정보 획득(이득)량 구해서 결정트리 배치
+분기 전 엔트로피와 비교해 정보획득을 조사
+
+정보 획득(이득)량 = 부모노드의 정보량과 자식노드들의 정보량의 차이
+=부모노드의 정보량(엔트로피 혹은 지니) - 자식노드들의 정보량(엔트로피 혹은 지니)
+
+정보 획득(이득)량이 클수록 확실성(혹은 순도)가 더 높게 분류되었다고 보는 것이고
+부모노드의 정보량과 자식노드들의 정보량의 차이가 없어서 
+더이상  정보 획득(이득)량이 없으면 분기(분할=split)를 멈춘다(나무의 성장,확장이 끝난다)
+모든 잎노드는 지니계수가 0
+
+예로 붓꽃경우 정보획득이 가장 큰 특성과 그 지점(해당 특성컬럼의 특정 행값(0.75), 페탈크기 <=0.75)을 택해 첫번째 분기를 하게된다.
+이후 또 같은 작업을 반복해 두번째, 세번째… 이렇게 분기를 계속 해 나가는 과정이 바로 의사결정나무의 학습
+
+------------------------------
+prams={'max_depth':[1,2,3,4]
+       ,'min_samples_split':[2,3]}
+prams = {'criterion':['gini','entropy'], 
+              'max_depth':[2,3,4,5,6],               
+              'min_samples_split':[2,3,4,5,6], 
+              'min_samples_leaf':[1,2,3], 
+              'max_features':['sqrt','log2']}
+
+-----------------------------------------
+#%% plot_tree
+from matplotlib import pyplot as plt
+from sklearn.tree import plot_tree
+#help(plot_tree)
+plt.figure(figsize=(20,15))
+plot_tree(model,filled=True)
+plt.savefig('tree.png')
+-------------------------------------
+일반적으로 로지스틱회귀는 이진분류에 적합(시그모이드는 기본적으로 0,1로 변환분류 )
+다중분류는 결정 트리가 적합
+-------------------------
+- quiz
+DecisionTreeClassifier로 최적의 자동차 등급 예측 모델을 찾는다. 
+GridSearchCV 기반의 교차검증으로 최적의 하이퍼 파라미터('criterion', 'max_depth', 'min_samples_split')를 찾아야 한다.
+make_column_transformer()을 적용하고 특성 중요도를 출력한다.
+
+df = pd.read_csv('https://raw.githubusercontent.com/khandelwalpranav05/Car-Evaluation/master/car.data')
+
+-----------------------------------------------------
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+
+df = pd.read_csv('https://raw.githubusercontent.com/khandelwalpranav05/Car-Evaluation/master/car.data')
+
+#x,y
+df_x_data = df.drop(['class values'], axis=1)
+df_y_data = df['class values']
+
+df_x_train, df_x_test, df_y_train, df_y_test = train_test_split(df_x_data, df_y_data, test_size=0.2, random_state=0,stratify=df_y_data)
+
+#x OneHotEncoder 적용
+#remainder 기본 drop
+transformer = make_column_transformer(
+    (OneHotEncoder(), ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety']),
+    remainder='passthrough')
+
+#x OrdinalEncoder 적용
+#remainder 기본 drop
+# from sklearn.preprocessing import OrdinalEncoder
+#transformer = make_column_transformer(
+#     (OrdinalEncoder(), ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety']),
+#     remainder='passthrough')
+
+
+transformer.fit(df_x_train)
+x_train = transformer.transform(df_x_train)
+x_test = transformer.transform(df_x_test)
+
+#y LabelEncoder 적용
+le = LabelEncoder()
+le.fit(df_y_train)
+y_train = le.transform(df_y_train)
+y_test = le.transform(df_y_test)
+
+model = DecisionTreeClassifier(random_state=0)
+prams={'criterion':['gini','entropy'],
+       'max_depth':[None,2,3,4],
+       'min_samples_split':[2,3]}
+grid_dtree = GridSearchCV(model
+             ,param_grid=prams
+             ,scoring='accuracy'
+             ,cv=5)
+
+grid_dtree.fit(x_train,y_train)
+
+#GridSearchCV 최적 파라미터
+print(grid_dtree.best_params_)
+#GridSearchCV 최고 정확도
+print(grid_dtree.best_score_)
+
+#최적의 예측 모델
+estimator=grid_dtree.best_estimator_
+y_predict=estimator.predict(x_test)
+
+#테스트 데이터 세트 정확도
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test, y_predict))
+
+-------------------------------------
+오버샘플링
+클래스간 샘플 개수가 차이가 큰 상태로 그대로 학습하면 
+다수의 클래스로 분류를 많이 하는되는 문제
+-> 불균형(비대칭) 클래스 데이터(imbalanced data)
+-> 클래스 데이터들간의 균등화
+Random OverSampling: 소수 클래스의 임의(랜덤)의 데이터를 
+그때 그때 일정개수를 반복해서 넣는 것
+SMOTE OverSampling
+conda install -c conda-forge imbalanced-learn
+
+-----------------------------------------
+와인분석
+화학적 측정 결과 데이터를 기반으로 와인의 등급(품질) 분류
+https://wikidocs.net/134603 
+#%% 와인분석 ver 2.0
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+##########데이터 로드
+df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/multiple_classification/red_wine_MupYMkf.xlsx?raw=true')
+
+df.info()
+
+x_data_df = df.drop(['quality'], axis=1)
+y_data_df = df['quality']
+
+#빈도분석
+import seaborn as sns
+sns.countplot(y_data_df)
+
+#상관성분석
+#품질이 좋을수록 알콜도수가 높은 편을 보인다.
+#품질이 좋지 않을수록 휘발산이 높은 편을 보인다.
+#고정산과 산성도(pH)는 음의 상관관계를 보인다.
+sns.pairplot(vars=["alcohol","fixed acidity" ,
+                   "volatile acidity", 
+                   "pH","quality"], 
+             data=df)
+#분산분석
+#피처별 평균과 표준편차가 다른 편이다.
+df.describe()
+
+#%% 전처리
+#중복행 제거
+#중복행 개수 240
+df.duplicated().sum()
+#첫행은 남기고 나머지 삭제
+#1599 - 240 = 1359 
+#삭제시킨 행 인덱스때문에
+#군데군데 인덱스 없다
+df.drop_duplicates(inplace=True)
+#연속적인 행 인덱스로 리셋
+df.reset_index(drop=True,
+               inplace=True)
+
+
+x_data_df = df.drop(['quality'], axis=1)
+y_data_df = df['quality']
+
+#%%
+#이상치 제거
+#1Q
+quartile_1 = x_data_df.quantile(0.25)
+#3Q
+quartile_3 = x_data_df.quantile(0.75)
+#IQR =3Q-1Q
+IQR = quartile_3 - quartile_1
+#1Q- IQR*1.5(ㅗ)보다 작거나 
+#3Q+ IQR*1.5(T)보다 큰 데이터는 이상치(outlier)
+
+condition = (x_data_df < (quartile_1 - 1.5 * IQR)) | (x_data_df > (quartile_3 + 1.5 * IQR))
+condition.head(50)
+#데이터프레임.any(axis=1): 가로방향으로 하나라도 True이면 True를 출력 
+# (예로  False  True -> True)
+condition = condition.any(axis=1) #이상한 행 조건
+#불리언 값 not
+#불리언 시리즈,배열 ~ (not 안됨)
+#import numpy as np
+#~np.array([False,False])
+'''
+18    False
+19     True
+
+예로 True인 행은 선택 
+'''
+condition = ~ condition#부정,이상하지 않은 행 조건
+
+#불리언 인덱스 시리즈로 정상행 선택 추출
+x_data_df = x_data_df[condition]
+y_data_df = y_data_df[condition]
+
+# 정상행이 제거되면서 군데군데 해당 행 인덱스번호가 없다  
+# 행 인덱스번호 연속적으로 reset
+x_data_df= x_data_df.reset_index(drop=True)
+y_data_df = y_data_df.reset_index(drop=True)
+
+#행 개수 1019로 감소
+x_data_df.shape[0]
+
+
+#%% x,y 분리후 오버샘플링
+#conda install -c conda-forge imbalanced-learn 
+#각 클래스의 개수가 큰 차이가 난 상태로 모델을 학습하면 다수의 클래스 범주로 분류를 많이하게 되는 문제
+#불균형(비대칭) 클래스 데이터(imbalanced data) -> 클래스 데이터들간의 균등화
+#오버샘플링: 소수 클래스 데이터에 임의의 데이터(예로 랜덤값)를 추가하여 다수 클래스 데이터에 맟춤(붓꽃데이터셋(50개씩))
+
+from imblearn.over_sampling import RandomOverSampler 
+sm = RandomOverSampler(random_state=0)
+x_data_df , y_data_df = sm.fit_resample(x_data_df,
+                                        y_data_df )
+#클래스별 데이터 개수 균등분포
+sns.countplot(y_data_df)
+#%%
+from sklearn.preprocessing import StandardScaler
+stand= StandardScaler()
+x_data = stand.fit_transform(x_data_df)
+#%%
+x_train, x_test, y_train, y_test = \
+train_test_split(x_data, y_data_df, 
+                 test_size=0.3, 
+                 random_state=0, 
+                 stratify=y_data_df)
+
+#%%  
+#모델 학습
+from sklearn.tree import DecisionTreeClassifier
+#클래스 불균형 해결 class_weight
+#샘플 수가 상대적으로 적은 클래스에 가중치를 부여(상대적으로 적은 클래스가 더 예측이 잘되는 것으로 가정)
+#클래스 별 가중치 값을 사전형식으로 지정 (약간 성능 개선 가능성)
+#model = DecisionTreeClassifier(random_state=0,class_weight={3:3, 4:2,5:1, 6:1,7:1.5, 8:3})
+model = DecisionTreeClassifier(random_state=0)
+model.fit(x_train, y_train)
+
+#모델 평가
+print(model.score(x_train, y_train))#1.0
+print(model.score(x_test, y_test))#0.612
+
+#모델 최적화 GridSearchCV() 최적화 (★행부족으로 이상치제거는 하지말고 중복행 제거 감안해서 train_test_split(test_size=0.25)로 설정)
+prams={'criterion':['gini','entropy'],
+       'max_depth':[None,2,3,4,5],
+       'min_samples_leaf':[1,2,3],
+       'min_samples_split':[2,3,4]}
+
+
+from sklearn.model_selection import GridSearchCV
+grid_dtree = GridSearchCV(model
+             ,param_grid=prams
+             ,scoring='accuracy'
+             ,cv=5)
+
+grid_dtree.fit(x_train,y_train)
+
+#GridSearchCV 최적 파라미터
+print(grid_dtree.best_params_)
+#GridSearchCV 최고 정확도
+print(grid_dtree.best_score_)#0.870
+'''
+class_weight후 0.571
+'''
+
+#최적의 예측 모델
+estimator=grid_dtree.best_estimator_
+y_predict=estimator.predict(x_test)
+
+#테스트 데이터 세트 정확도
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test, y_predict))
+'''
+1. class_weight후 0.595
+2. 오버샘플링 전후
+테스트 점수 accuracy 0.563 -> 0.858
+'''
+#%% 피처중요도
+for k,v in zip(x_data_df.columns,
+               estimator.feature_importances_):
+    print(k,v)
+#막대로 시각화
+#알콜 특성이 가장 중요 
+#가장 유용한 특성들만 선택하여 학습 특성의 수를 
+#줄여서 재학습으로 과적합을 해소할 수 있다.    
+import seaborn as sns
+#sns.barplot(x=x_data_df.columns,
+#            y=estimator.feature_importances_)
+#가로막대
+sns.barplot(x=estimator.feature_importances_,
+            y=x_data_df.columns) 
+
+#DataFrame 기반 내림정렬
+d={"feature_names" : x_data_df.columns , 
+   "feature_importances" : estimator.feature_importances_}
+df = pd.DataFrame(d)
+df = df.sort_values(by="feature_importances",
+               ascending=False)
+
+sns.barplot(x="feature_importances",
+            y="feature_names",
+            data = df) 
+
+#Series 기반 내림정렬
+feature_importance_values_s = pd.Series(estimator.feature_importances_,
+index = x_data_df.columns)
+#중요도 값 상위 5개
+feature_importance_values_s.sort_values(ascending = False)[:5] 
+
+-----------------------
+confusion_matrix, 실제값과 예측값의 행렬
+https://wikidocs.net/45729
+
+Accuracy(정확도)= TP+TN/TP+FP+TN+FN
+Recall(재현율) :실제로 1(P)인 데이터를 1(P)로 예측(재현)한 비율(점수)= TP/ FN +TP 
+Precision(정밀도):예측한 1(P)인 데이터가  실제로 1(P)인 비율(점수) = TP/ TP+ FP
+F1 Score : Precision과 Recall 조화평균 =2*((precision*recall)/(precision+recall))
+조화평균은 특정 값이 치우치지 않고 두 값이 높은값으로 균형일때 높은값이 나옴
+불균형한 경우 일반적인 척도
+
+민감도(Sensitivity)  = Recall(재현율) = TPR
+특이도(Specificity)=TN/(TN+FP ) 
+FPR(False Positive Rate) = 1- 특이도(Specificity)
+
+ROC(Receiver Operating Characteristic)곡선(curve)=수신자 운영 특성 곡선
+FPR이 변할 때 TPR이 어떻게(얼마나) 변하는지를 보여주는 곡선
+
+AUC(Area Under Curve) : ROC곡선 밑의 면적 값
+AUC 가 클수록(1에 가까울 수록) 클래스 분류 확신도(신뢰도)가 높음
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+
+##########데이터 로드
+
+x_data = np.array([
+    [2, 1],
+    [3, 2],
+    [3, 4],
+    [5, 5],
+    [7, 5],
+    [2, 5],
+    [8, 9],
+    [9, 10],
+    [6, 12],
+    [9, 2],
+    [6, 10],
+    [2, 4]
+])
+y_data = np.array([0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0])
+
+labels = ['fail', 'pass']
+
+##########데이터 전처리
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.3, random_state=777, stratify=y_data)
+
+##########모델 학습
+
+model = LogisticRegression()
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+y_predict = model.predict(x_test)
+from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import classification_report
+
+#1. 정확도,정밀도, 재현율, F1-score
+print(accuracy_score(y_test , y_predict))
+print(precision_score(y_test , y_predict))
+print(recall_score(y_test , y_predict))
+print(f1_score(y_test,y_predict))
+
+#2. classification_report()는 정밀도, 재현율, F1-score를 구해 분류보고서를 생성
+
+print(classification_report(y_test, y_predict))
+'''
+              precision    recall  f1-score   support #support :테스트 데이터 수 4개에서 각 클래스에 속한 샘플수
+
+           0       1.00      1.00      1.00         2
+           1       1.00      1.00      1.00         2
+
+    accuracy                           1.00         4
+   macro avg(단순산술평균,평균의 평균)       1.00      1.00      1.00         4
+weighted avg(각 클래스에 속하는 표본의 갯수로 가중치평균)       1.00      1.00      1.00         4
+'''
+#3.confusion matrix
+print(confusion_matrix(y_test, y_predict))
+
+-------------------
+grid_search = GridSearchCV(model, param_grid=param_grid, scoring='recall', return_train_score=True) 
+grid_search = GridSearchCV(model, param_grid=param_grid, scoring='precision', return_train_score=True)
+grid_search = GridSearchCV(model, param_grid=param_grid, scoring='f1', return_train_score=True) 
+----------------------------------
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
+# ROC 곡선의 시각화
+# 곡선이 가운데 직선에서 좌상단으로 
+# 멀어질수록 성능이 좋다.
+def roc_curve_plot(y_test, pred_proba_c1):
+    #임계값에 따른 FPR, TPR 값을반환 받음
+    fprs, tprs, thresholds  = roc_curve(y_test, pred_proba_c1)#roc_curve() 이진분류만 지원
+    # ROC곡선을 그래프로 그림
+    plt.plot(fprs, tprs, label='ROC')
+    # 가운데 대각선 직선을 그림
+    # 대각선: 분류 임계(경계)선 일반적으로 임계값은 50% 설정하고
+    # 크면 P 작으면 N    
+    plt.plot([0,1], [0,1], 'k--', label='Random')      
+    plt.xlabel('FPR')
+    plt.ylabel('TPR')
+    plt.legend()
+
+#예측분류확률
+y_predict_proba = model.predict_proba(x_test)
+#y_predict_proba[:, 1] 예측확률의 1번 컬럼
+roc_curve_plot(y_test, y_predict_proba[:, 1])
+
+from sklearn.metrics import  roc_auc_score
+print('roc_auc_score:',roc_auc_score(y_test,y_predict))
+
+#2. 예측확률기반
+print('roc_auc_score:',roc_auc_score(y_test,y_predict_proba[:,1]))
+#다중분류인경우
+print('roc_auc_score:',roc_auc_score(y_test,y_predict_proba, 
+                                     multi_class ='ovr'))
+---------------------------------------
+k-NN(k-최근접 이웃 분류)
+https://wikidocs.net/26263
+k 클래수 +1 가장 가까운 홀수 시작
+---------------------------------------
+svm(서포트벡터머신)
+https://wikidocs.net/26271
+
+커널(매핑) 함수
+linear 선형
+poly 다항식 커널 함수 사용 (비선형)
+rbf Radial Basis Function(방사 기저 함수) 가우시안 커널 (비선형)  default
+
+C(cost)
+클수록 정확하게 (마진이 작아짐, 과대적합)
+적합한 C값을 찾아내는 것이 중요
+
+gamma
+비선형에서만 사용
+gamma를 감소시켜 결정 경계를 부드럽게 조정 (과적합 방지)
+
+-----------------------------
+상품매장 방문고객의 간단프로필 기반 구매여부 분류예측
+DecisionTree, KNN ,SVM으로 판별하는 분류모델을 생성 후 
+각 모델별 훈련정확도와 테스트정확도를 출력하고 비교분석한다.
+(data/buy2.csv)
+
+- 고려사항
+1. 나이,월수입,상품구매여부 한글컬럼명의 age,income,buy영문화 후 
+age별 구매여부와 income별 구매여부 개수를 시각화한다.
+2. (23,,비구매)행은 null이 존재하기 때문에 제거
+3. (2,200,구매)행은 나이가 2이다. 이상치로 보고 제거
+4. 피처 크기 정규화
+
+--------------------------------
+import pandas as pd
+#나이,월수입,상품구매여부 한글컬럼명을 영문화
+#data = pd.read_csv('data/buy2.csv',names=['age','income','buy'])#이렇게 하면'age','income'이 object으로 변환
+#skiprows=[0] 없으면 기존 컬럼명 헤더행이 data 0번 행에 내려간다 
+#data = pd.read_csv('data/buy.csv',skiprows=[0],names=['age','income','buy'])
+
+data = pd.read_csv('data/buy2.csv')
+# data.rename(columns = {'나이':'age','월수입':'income','상품구매여부':'buy'},  inplace=True)#불편
+data.columns=['age','income','buy']
+data.info()#income에서 널값 확인
+#%%시각화
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.rc('font', family='Malgun Gothic') 
+sns.boxplot(data = data) #피처 시각화 ,구매여부는 문자형이므로 미출력
+
+#구매여부별 개수 (클래스 레이블수 벨런스 여부 확인)
+sns.countplot(x="buy", data=data) #무난
+
+#대체적으로 중간,고연령층이 구매한다.
+sns.countplot(x="buy",hue='age', data=data)
+#대체적으로 고소득층이 구매한다.
+sns.countplot(x="buy",hue='income', data=data)
+
+#나이별 구매여부별 월수입 시각화 분석
+sns.boxplot(x='age',hue='buy',y='income',data=data)
+
+---------------------------
+#%%
+# 1. income  null 존재
+data.info()
+
+#행 내 값들 중에 NaN이 하나라도 포함되어 있는 경우 해당 행 삭제
+#data에 적용(커밋)
+#data.dropna(how='any',inplace=True)
+#how='any' 기본 생략가능
+data = data.dropna(how="any")
+data.info() #21행 #data.count()
+
+#2. x,y  분할
+#x_data = data.loc[:,'age':'income']
+x_data = data[['age','income']]
+y_data = data['buy']
+
+#3. y 범주 레이블 문자를 0,1로 변환
+#pd.factorize() 는 값에 0,1..일련번호 정수를 부여, 2가지 값을 반환 
+# 첫번째 값은 정수 인코딩된 값 , 두번째 값은 인코딩된 범주레이블명
+# 관례적으로 _ 또는 ign(ignored) 변수를 사용
+y_data,_ = y_data.factorize()#y_data = y_data.factorize()[0]
+print(y_data)
+print(_)#['비구매', '구매']
+
+#4. 이상치  확인 
+#이상치는 가끔 생성되는 특이값
+#그리고 MinMaxScaler은 이상치에 민감 
+#나이에서 2세가 존재, 월수입 440 애매하지만 현 분포에서 너무 큰값으로 간주 
+data.describe()
+#피처 시각화 
+sns.boxplot(data = data) 
+
+#이상치 제거
+#이상치행 제거 함수 모듈화
+def drop_outlier(x_data):
+    quartile_1 = x_data.quantile(0.25)
+    #3Q
+    quartile_3 = x_data.quantile(0.75)
+    #IQR =3Q-1Q
+    IQR = quartile_3 - quartile_1
+    #1Q- IQR*1.5(ㅗ)보다 작거나 
+    #3Q+ IQR*1.5(T)보다 큰 데이터는 이상치(outlier)
+    
+    condition = (x_data < (quartile_1 - 1.5 * IQR)) | (x_data > (quartile_3 + 1.5 * IQR))
+    #데이터프레임.any(axis=1): 가로방향으로 하나라도 True이면
+    #True를 출력 
+    # (예로 18  False  True -> True)
+    condition = condition.any(axis=1) #이상한 행 조건
+    #불리언 값 not
+    #불리언 배열, 시리즈 ~
+    '''
+    18    False
+    19     True
+    
+    예로 True인 행은 선택 
+    '''
+    condition = ~condition#이상하지 않은 행 조건
+    return condition
+
+#불리언 인덱스 시리즈로 이상하지 않은 행 추출
+cond  = drop_outlier(x_data)
+x_data = x_data[cond]
+y_data = y_data[cond]
+
+#이상치 사라짐
+sns.boxplot(data = x_data)
+
+#5. 피처 정규화
+#나머지 컬럼의 다른의미,단위를 표준분포 ((x-평균)/표준편차) 혹은 MinMax 정규화(특성간 의미가 매우 다른경우??)
+# 1. 적합 2. 변환
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+scaler.fit(x_data)
+x_data_scaled = scaler.transform(x_data)
+#각 피처간 범위가 유사 
+plt.boxplot(x_data_scaled) 
+
+#6. 데이터 셋을 훈련/테스트 세트로 나눈다.
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x_data_scaled ,
+                                                    y_data,
+                                                    test_size=0.3,
+                                                    random_state=0,
+                                                    stratify=y_data)
+#기본모델로 학습의 성능 비교(샘플수가 매우 적어 GridSearchCV 생략 )
+
+#1. DecisionTree
+from sklearn.tree import DecisionTreeClassifier
+##########모델 학습
+#random_state=0 매실행시 학습결과 고정화
+model = DecisionTreeClassifier(random_state=0) 
+model.fit(x_train, y_train)
+##########모델 검증
+print('train정확도',model.score(x_train, y_train)) 
+print('test정확도',model.score(x_test, y_test)) 
+
+'''
+train정확도는 1.0
+모델의 test정확도는 0.66
+'''
+
+#2. KNN
+# 이웃의 수를 5로 지정
+from sklearn.neighbors import KNeighborsClassifier
+model = KNeighborsClassifier()
+##########모델 학습
+model.fit(x_train, y_train)
+##########모델 검증
+print('train정확도는',model.score(x_train, y_train)) 
+print('test정확도는',model.score(x_test, y_test)) 
+'''
+train정확도는 0.6923076923076923
+test정확도는 0.3333333333333333
+'''
+
+#3. SVM
+from sklearn.svm import SVC
+model = SVC()
+##########모델 학습
+model.fit(x_train, y_train)
+##########모델 검증
+print('train정확도는',model.score(x_train, y_train)) 
+print('test정확도는',model.score(x_test, y_test)) 
+'''
+- rbf
+train정확도는 0.7692307692307693
+test정확도는 0.5
+'''
+#4. linear SVM
+model = SVC(kernel='linear')
+model.fit(x_train, y_train)
+##########모델 검증
+print('train정확도는',model.score(x_train, y_train)) 
+print('test정확도는',model.score(x_test, y_test)) 
+'''
+- linear
+train정확도는 0.6923076923076923
+test정확도는 0.6666666666666666
+'''
+
+'''
+선형 기본 SVM 모델이 과적합 측면에서 성능이 좋다.
+'''

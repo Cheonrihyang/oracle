@@ -1,0 +1,288 @@
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 1.51e+04. This might indicate that there are
+strong multicollinearity or other numerical problems.
+
+조건수(입력에 따른 출력의 변화 정도)
+
+조건수가 클 수록 입력이 조금만 달라져도 결과가 크게 달라짐
+-> 피처 크기 정규화 -> 조건수 낮아짐
+
+--------------------------------------------------
+* 회귀계수 정규(칙)화(Regularization))
+기본선형 회귀는 모델링을 할 때 과대적합되기 쉽다. 
+계수규제 
+릿지(Ridge) 모델 벌점=L2 벌점
+오차 = 오차 + 벌점가중치* 벌점
+오차 = 오차 + alpha * (w1^2 + w2^2)  를 최소화 시키기 위해서
+벌점가중치 강해질수록 w1, w2 약화
+
+라쏘(Lasso) 모델 벌점=L1 벌점
+오차 = 오차 + alpha * (|w1| + |w2|)
+다중공선성을 가지는 특성수를 줄이거나
+영향력이 작다던지 무의미한 특성수를 줄임
+
+엘라스틱(ElasticNet) = L1 벌점과 L2 벌점을 동시에 이용하는 모델 
+
+-> 계수값은 지속적으로 작아진다(0에 가깝게 작아진다)
+--------------------------------------
+* https://wikidocs.net/44639
+https://wikidocs.net/44638
+---------------------------------------
+고정된 훈련세트에만 훈련 최적화되고 고정된 테스트세트에만 과적합한된 평가 결과가
+나온 편향된 모델이 유도->또 다른 테스트세트에는 성능 저하. 평가 정확도의 비신뢰
+
+교차검증 평가
+훈련세트와 테스트세트로 한 번 나누는 것보다
+별도의 여러 세트로 구성된 훈련과 테스트세트로 학습과 평가
+
+ - K 분할 교차검증
+k=3일 때
+각 분할마다 하나의 폴드를 테스트용으로 사용하고
+나머지 2개의 폴드는 훈련용으로 쓴다. 이 과정을 반복하여 각 분할마다 정확도를 측정한다.
+각 정확도 평균 구함 
+평가 정확도의 신뢰
+https://wikidocs.net/46481
+
+https://wikidocs.net/84305
+----------------------------------------
+https://wikidocs.net/84612
+
+----------------------------
+https://wikidocs.net/87220
+모델선택
+문제에 적합한 베스트 모델(어떤 하이퍼파라미터)선택
+----------------------------------------
+- quiz
+맨하탄의 주택정보를 이용한 최적의 임대료 예측 Ridge 회귀 모델을 찾는다.
+rent 정보가 임대료이고 target이다.
+* 고려사항
+id같은 식별자와 object 같은 비숫자열인 특성(정보)변수는 학습에서 제외한다.
+GridSearchCV 사용
+
+맨하탄의 주택정보(특성)
+rental_id	rental ID
+rent	임대료 ($)
+bedrooms	침실수
+bathrooms	화장실수
+size_sqft	평수(feet)
+min_to_subway	지하철과의 거리 (minutes)
+floor	층수
+building_age_yrs	건물 연령
+no_fee	중계수수료 (0 for fee, 1 for no fee)
+has_roofdeck	옥상 (o for no, 1 for yes)
+has_washer_dryer	세탁기/건조기 (0/1)
+has_doorman	도어맨 (0/1)
+has_elevator	엘리베이터 (0/1)
+has_dishwasher	식기세척기 (0/1)
+has_patio	안마당(patio) (0/1)
+has_gym	헬스장(gym) (0/1)
+neighborhood	이웃 (ex: 한인타운)
+borough	 (ex: Manhattan)
+
+df = pd.read_csv("data/manhattan.csv")   
+
+--------------------------------------
+import pandas as pd
+df = pd.read_csv("data/manhattan.csv")
+df.shape #(3539, 18)
+
+from sklearn.model_selection import train_test_split
+#독립변수 선별(id같은 식별자와 object 같은 비숫자열 제거)
+x_data = df.drop(['rental_id','rent','borough','neighborhood'],axis=1)
+
+#단일값('Manhattan') 열은 제거
+#df['borough'].unique()
+
+#가능
+#x = df.drop(columns=['rental_id','rent','borough','neighborhood'])
+
+x_data.shape #(3539, 14)
+y_data = df['rent']
+
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+model = Ridge()
+param_grid = {
+    'alpha': [0,0.1,1,10]
+}
+#파라미터명이 키값
+
+x_train, x_test, y_train, y_test = train_test_split(x_data, y_data,
+                                                    test_size=0.2, random_state=0)
+#GridSearchCV 모델 생성
+#scoring=r2 ,  cv=5 기본값 
+#grid_search = GridSearchCV(model,param_grid=param_grid)
+grid_search = GridSearchCV(model,param_grid=param_grid,
+                           scoring='neg_mean_squared_error',
+                           cv=5,
+                           n_jobs=-1)
+
+grid_search.fit(x_train, y_train) 
+
+#최적의 alpha파라미터 
+grid_search.best_params_ #10
+#5개에 대한 가장 눂은 점수의 평균 
+#교차분할검증된 r2혹은 nmse점수의 평균 
+grid_search.best_score_ #
+
+#rmse
+#np.sqrt(-1 * grid_search.best_score_)
+
+y_preds = grid_search.best_estimator_.predict(x_test)
+
+#테스트 평가
+#GridSearchCV객체로 예측 가능
+#y_preds= grid_search.predict(x_test)
+from sklearn.metrics import  r2_score
+print('Variance score : {0:.3f}'.format(r2_score(y_test, y_preds)))
+----------------------------------
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import make_column_transformer
+from sklearn.linear_model import Ridge
+
+##########데이터 로드
+
+train_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='train')
+test_df = pd.read_excel('https://github.com/cranberryai/todak_todak_python/blob/master/machine_learning/regression/carprice_E1SUl6b.xlsx?raw=true', sheet_name='test')
+
+##########데이터 분석
+
+##########데이터 전처리
+
+x_train_df = train_df.drop(['가격'], axis=1)
+x_test_df = test_df.drop(['가격'], axis=1)
+y_train_df = train_df['가격']
+y_test_df = test_df['가격']
+print(x_train_df.head())
+
+desc = x_train_df.describe()
+
+#Index(['년식', '종류', '연비', '마력', '토크', '연료', '하이브리드', '배기량', '중량', '변속기'], dtype='object')
+print(x_train_df.columns) 
+
+
+# StandardScaler객체 생성
+#scaler = StandardScaler()
+#연비, 마력, 배기량의 평균과 분산의 큰차이-> 피처 크기 정규화 필요
+from sklearn.preprocessing import StandardScaler
+# transformer = make_column_transformer(
+#     (StandardScaler(),['연비','마력','배기량']),
+#     (OneHotEncoder(), ['종류', '연료', '변속기']),
+#     remainder='passthrough')
+#make_column_transformer((scaler,[숫자형컬럼들]),
+#                         encoder,[범주형컬럼들])
+transformer = make_column_transformer(
+    (StandardScaler(),['년식','연비','마력','토크','하이브리드','배기량','중량']),
+    (OneHotEncoder(), ['종류', '연료', '변속기'])
+    )
+
+
+transformer.fit(x_train_df)
+x_train = transformer.transform(x_train_df) #트랜스포머의 transform() 함수는 결과를 넘파이 배열로 리턴
+x_test = transformer.transform(x_test_df)
+
+
+import seaborn as sns
+#평균이 왼쪽으로 치우진 왜곡된 멱함수분포(편포=skew )
+#왜도(치우침(편향된 분포)정도 = skewness) > 0 
+#오른쪽으로 편포 왜도 < 0    
+sns.distplot(y_train)
+#로그 변환
+import numpy as np
+y_train= np.log1p(y_train) 
+y_test= np.log1p(y_test)
+
+##########모델 생성
+
+#model = Ridge(alpha=10)
+model = Ridge(alpha=1) #피처값이 작아지므로 이 예제에서는 이 경우가 좀 더 점수가 높다
+##########모델 학습
+
+model.fit(x_train, y_train)
+
+##########모델 검증
+print(model.score(x_train, y_train)) 
+print(model.score(x_test, y_test)) 
+
+----------------------------
+이상치 
+from sklearn.model_selection import GridSearchCV
+from sklearn import datasets
+from sklearn.linear_model import Ridge
+dataset = datasets.load_boston()
+x_data = dataset.data
+
+import seaborn as sns
+#이상치 확인
+sns.boxplot(data = x_data) 
+#x,y 분리
+x_data = pd.DataFrame(x_data,columns=(dataset.feature_names))
+x_data['PRICE'] = boston.target
+y_data = x_data['PRICE']
+x_data = bostonDF.drop('PRICE',axis=1)
+
+#1Q
+quartile_1 = x_data.quantile(0.25)
+#3Q
+quartile_3 = x_data.quantile(0.75)
+#IQR =3Q-1Q
+IQR = quartile_3 - quartile_1
+
+desc = x_data.describe()
+################################################
+#이상치 조건
+#1Q- IQR*1.5(ㅗ)보다 작거나 
+#3Q+ IQR*1.5(T)보다 큰 데이터는 이상치(outlier)
+#이상치 제거
+condition = (x_data < (quartile_1 - 1.5 * IQR)) | (x_data > (quartile_3 + 1.5 * IQR)) 
+condition.head(50)
+
+#데이터프레임.any(axis=1): 특정값을 가지는 행이 있는지 파악 가능
+#x의 특정 피처의 (가로방향으로) 값이 하나라도 True이면
+#True를 출력(해에 True가 한개 이상은 존재한다) 
+#예로  False,True -> True)
+#all() : (모든 피처가 True이면)True를 출력
+condition = condition.any(axis=1) #이상한 행 조건
+type(condition) #Series
+
+#불리언 값 not
+#not True
+#불리언 시리즈,배열 ~ (not 안됨)
+#import numpy as np
+#~np.array([False,False])
+
+'''
+18    False
+19     True
+
+예로 True인 행은 선택 
+'''
+condition = ~ condition#부정,이상하지 않은(정상) 행 조건
+
+#불리언 인덱스 시리즈로 정상행 선택 추출
+#인덱스번호가 비연속적
+x_data = x_data[condition]
+y_data = y_data[condition]
+
+#이상치 감소 확인
+sns.boxplot(data = x_data)
+-------------------------
+만약 종속변수인 y와 독립변수인 x가 선형 관계가
+아닌 곡선 형태를 갖는다면 
+독립변수에 지수승을 붙여서 여러 개의 변수로 만들어 회귀 모델을 구성하는 기법
+x1,x2 => x1+x2 => 1+x1+x2+x1^2+x1x2,,x2^2로 변환되어 회귀식에 더해진다
+-> 고차다항식 ->비선형 관계들로 설명(추정)
+https://wikidocs.net/73484
+--------------------------
+ ~31 ML
+ 8/1,2 리눅스
+ 8/5~9 클라우드
+ 8/12 ~16 엘라스틱서치
+ 8/19 일정기간 강의 , PRJ
+
+
+
+
+
